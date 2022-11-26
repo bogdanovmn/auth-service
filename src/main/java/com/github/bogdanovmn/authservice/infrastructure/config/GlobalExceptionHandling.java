@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -51,13 +52,13 @@ public class GlobalExceptionHandling {
 		boolean isServerError = statusCode >= 500;
 		if (isServerError) {
 			log.error(
-				"{} {} processing error: {}",
-				req.getMethod(), req.getRequestURI(), ex.getMessage(), ex
+				"HTTP Response: {} for [{} {}] processing error: {}",
+				statusCode, req.getMethod(), req.getRequestURI(), exceptionMessage(ex), ex
 			);
 		} else {
 			log.warn(
-				"{} {} processing error: {}",
-				req.getMethod(), req.getRequestURI(), ex.getMessage()
+				"HTTP Response: {} for [{} {}] processing error: {}",
+				statusCode, req.getMethod(), req.getRequestURI(), exceptionMessage(ex)
 			);
 		}
 		return ResponseEntity.status(statusCode).body(
@@ -76,5 +77,15 @@ public class GlobalExceptionHandling {
 				)
 				.build()
 		);
+	}
+
+	private String exceptionMessage(Throwable exception) {
+		return Optional.ofNullable(exception.getMessage())
+			.orElse(
+				Optional.ofNullable(exception.getCause())
+					.map(Throwable::getMessage)
+					.orElse(exception.getClass().getSimpleName())
+			);
+
 	}
 }

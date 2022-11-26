@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -17,7 +18,7 @@ class LoginController {
 	private final JwtService jwtService;
 
 	@PostMapping("/login")
-	LoginResponse login(@RequestBody LoginRequest request) {
+	LoginResponse login(@RequestBody @Valid LoginRequest request) {
 		Account account = accountService.getByEmailAndPassword(request.getEmail(), request.getPassword())
 			.orElseThrow(NoSuchElementException::new);
 

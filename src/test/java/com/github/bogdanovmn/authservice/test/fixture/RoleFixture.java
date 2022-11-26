@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.authservice.fixture;
+package com.github.bogdanovmn.authservice.test.fixture;
 
 import com.github.bogdanovmn.authservice.model.Application;
 import com.github.bogdanovmn.authservice.model.Role;

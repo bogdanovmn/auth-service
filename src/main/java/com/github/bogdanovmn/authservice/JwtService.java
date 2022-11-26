@@ -3,6 +3,8 @@ package com.github.bogdanovmn.authservice;
 import com.github.bogdanovmn.authservice.common.FileResource;
 import com.github.bogdanovmn.authservice.common.RSAKey;
 import com.github.bogdanovmn.authservice.model.Account;
+import com.github.bogdanovmn.authservice.model.RefreshToken;
+import com.github.bogdanovmn.authservice.model.RefreshTokenRepository;
 import com.github.bogdanovmn.authservice.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -18,10 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.sql.Date;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +36,14 @@ public class JwtService {
 
 	@Value("${jwt.public-key-path:}")
 	private final String publicKeyPath;
+
+	@Value("${jwt.ttl-in-minutes:10}")
+	private final long tokenTtlInMinutes;
+
+	@Value("${jwt.refresh-token.ttl-in-hours:48}")
+	private final long refreshTokenTtlInHours;
+
+	private final RefreshTokenRepository refreshTokenRepository;
 
 	@PostConstruct
 	public void loadKeys() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
@@ -61,15 +69,27 @@ public class JwtService {
 			.claim("userId", account.getId())
 			.claim("userName", account.getName())
 			.signWith(privateKey)
+			.setIssuedAt(new Date())
 			.setExpiration(
-				Date.from(
-					LocalDateTime.now().plus(30, ChronoUnit.MINUTES).toInstant(ZoneOffset.UTC)
-				)
+				new Date(System.currentTimeMillis() + tokenTtlInMinutes * 60_000L)
 			).compact();
 	}
 
+	@Transactional
 	public String createRefreshToken(Account account) {
-		return null;
+		Date expiresAt = new Date(System.currentTimeMillis() + refreshTokenTtlInHours * 3600_000);
+		RefreshToken refreshToken = refreshTokenRepository.save(
+			new RefreshToken()
+				.setAccount(account)
+				.setExpiresAt(expiresAt)
+		);
+		return Jwts.builder()
+			.setId(refreshToken.getId().toString())
+			.claim("userId", account.getId())
+			.signWith(privateKey)
+			.setIssuedAt(new Date())
+			.setExpiration(expiresAt)
+		.compact();
 	}
 
 	public Jws<Claims> parse(String token) {

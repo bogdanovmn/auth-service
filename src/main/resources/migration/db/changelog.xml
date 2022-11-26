@@ -17,6 +17,8 @@
 				email varchar NOT NULL,
 				name varchar NOT NULL,
 				encoded_password varchar NOT NULL,
+				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 				UNIQUE(email),
 				UNIQUE(name)
@@ -24,13 +26,15 @@
 
 			CREATE TABLE application (
 				id bigserial PRIMARY KEY,
-				name varchar NOT NULL
+				name varchar NOT NULL,
+				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
 			);
 
 			CREATE TABLE role (
 				id bigserial PRIMARY KEY,
 				name varchar NOT NULL,
 				app_id bigint NOT NULL,
+				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 				CONSTRAINT fk_app FOREIGN KEY(app_id) REFERENCES application(id),
 				UNIQUE(name, app_id)
@@ -39,6 +43,7 @@
 			CREATE TABLE account2role (
 				account_id uuid NOT NULL,
 				role_id bigint NOT NULL,
+				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 				CONSTRAINT fk_account FOREIGN KEY(account_id) REFERENCES account(id),
 				CONSTRAINT fk_role FOREIGN KEY(role_id) REFERENCES role(id),
@@ -46,11 +51,10 @@
 			);
 
 			CREATE TABLE refresh_token (
-				id bigserial PRIMARY KEY,
+				id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
 				account_id uuid NOT NULL,
-				value varchar NOT NULL,
-				created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-				expires_at timestamp NOT NULL,
+				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+				expires_at timestamp with time zone NOT NULL,
 
 				CONSTRAINT fk_account FOREIGN KEY(account_id) REFERENCES account(id),
 				UNIQUE(account_id)

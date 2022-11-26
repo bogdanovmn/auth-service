@@ -12,13 +12,12 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public
-class RegistrationService {
+public class RegistrationService {
 	private final AccountRepository accountRepository;
 	private final RoleRepository roleRepository;
 
 	@Transactional
-	public void createUser(RegistrationRequest request) {
+	public void createAccount(RegistrationRequest request) {
 		accountRepository.save(
 			new Account()
 				.setEmail(request.getEmail())

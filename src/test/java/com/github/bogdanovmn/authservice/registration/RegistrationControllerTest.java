@@ -1,42 +1,26 @@
 package com.github.bogdanovmn.authservice.registration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bogdanovmn.authservice.AccountService;
-import com.github.bogdanovmn.authservice.JwtService;
-import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtTokenFilter;
-import com.github.bogdanovmn.authservice.infrastructure.config.security.WebSecurity;
+import com.github.bogdanovmn.authservice.model.Account;
 import com.github.bogdanovmn.authservice.model.AccountRepository;
+import com.github.bogdanovmn.authservice.test.AbstractControllerTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Optional;
+
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
 @ContextConfiguration(
 	classes = {
-		RegistrationController.class,
-		JwtService.class,
-		JwtTokenFilter.class,
-		WebSecurity.class
+		RegistrationController.class
 	}
 )
-@ExtendWith(SpringExtension.class)
-class RegistrationControllerTest {
-
-	@Autowired
-	private MockMvc mockMvc;
-
-	@Autowired
-	private ObjectMapper jsonMapper;
-
+class RegistrationControllerTest extends AbstractControllerTest {
 	@MockBean
 	private RegistrationService registrationService;
 
@@ -45,7 +29,6 @@ class RegistrationControllerTest {
 
 	@MockBean
 	private AccountRepository accountRepository;
-
 
 	@Test
 	void registrationIsOk() throws Exception {
@@ -65,6 +48,27 @@ class RegistrationControllerTest {
 	}
 
 	@Test
+	void accountAlreadyExists() throws Exception {
+		final String email = "joe@mail.ru";
+		when(accountService.getByEmail(email))
+			.thenReturn(Optional.of(new Account()));
+
+		this.mockMvc.perform(
+			post("/accounts")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(
+					jsonMapper.writeValueAsString(
+						RegistrationRequest.builder()
+							.accountName("Joe")
+							.email(email)
+							.password("secret")
+						.build()
+					)
+				)
+		).andExpect(status().isConflict());
+	}
+
+	@Test
 	void registrationWithoutRequiredValues() throws Exception {
 		this.mockMvc.perform(
 			post("/accounts")
@@ -75,7 +79,7 @@ class RegistrationControllerTest {
 							.accountName("Joe")
 							.email("joe@mail.ru")
 							.password("")
-							.build()
+						.build()
 					)
 				)
 		).andExpect(status().isBadRequest());

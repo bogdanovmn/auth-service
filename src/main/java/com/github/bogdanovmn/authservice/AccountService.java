@@ -19,11 +19,11 @@ class AccountService {
 	}
 
 	public Optional<Account> getByEmailAndPassword(String email, String password) {
-		return accountRepository.findByEmailAndEncodedPassword(
-			email,
-			PasswordEncoderFactories.createDelegatingPasswordEncoder()
-				.encode(password)
-		);
+		return accountRepository.findByEmail(email)
+			.filter(
+				account -> PasswordEncoderFactories.createDelegatingPasswordEncoder()
+					.matches(password, account.getEncodedPassword())
+			);
 	}
 
 }

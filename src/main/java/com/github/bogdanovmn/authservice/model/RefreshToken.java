@@ -3,12 +3,15 @@ package com.github.bogdanovmn.authservice.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -18,11 +21,14 @@ import java.time.LocalDateTime;
 public class RefreshToken {
 	@Id
 	@GeneratedValue
-	private Long id;
+	private UUID id;
 
 	@OneToOne
-	private Account owner;
-	private String value;
-	private LocalDateTime createdAt;
-	private LocalDateTime expiresAt;
+	@JoinColumn(name = "account_id")
+	private Account account;
+
+	@Column(insertable = false, updatable = false)
+	private Date createdAt;
+
+	private Date expiresAt;
 }

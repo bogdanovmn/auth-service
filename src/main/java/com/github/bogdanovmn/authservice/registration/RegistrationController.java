@@ -25,6 +25,8 @@ class RegistrationController {
 			throw new AlreadyExistsException(existedUser.get().getEmail());
 		}
 
+		registrationService.createAccount(request);
+
 		return ResponseEntity.ok().build();
 	}
 }
