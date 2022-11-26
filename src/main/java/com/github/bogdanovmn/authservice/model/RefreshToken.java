@@ -2,6 +2,7 @@ package com.github.bogdanovmn.authservice.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -18,17 +19,21 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "refresh_token")
+@ToString(onlyExplicitlyIncluded = true)
 public class RefreshToken {
 	@Id
 	@GeneratedValue
+	@ToString.Include
 	private UUID id;
 
 	@OneToOne
 	@JoinColumn(name = "account_id")
+	@ToString.Include
 	private Account account;
 
 	@Column(insertable = false, updatable = false)
 	private Date createdAt;
 
+	@ToString.Include
 	private Date expiresAt;
 }

@@ -8,6 +8,7 @@ import com.github.bogdanovmn.authservice.model.RefreshTokenRepository;
 import com.github.bogdanovmn.authservice.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,30 +62,45 @@ public class JwtService {
 	}
 
 	public String createToken(Account account) {
-		return Jwts.builder()
-			.claim(
-				"roles",
-				account.getRoles().stream()
-					.map(Role::toString)
-					.collect(Collectors.toSet())
-			)
-			.claim("userId", account.getId())
-			.claim("userName", account.getName())
+		Map<String, Object> claims = Map.of(
+			"roles",    account.getRoles().stream().map(Role::toString).collect(Collectors.toSet()),
+			"userId",   account.getId(),
+			"userName", account.getName()
+		);
+		Date expiresAt = new Date(System.currentTimeMillis() + tokenTtlInMinutes * 60_000L);
+
+		JwtBuilder token = Jwts.builder()
+			.setClaims(claims)
 			.signWith(privateKey)
 			.setIssuedAt(new Date())
-			.setExpiration(
-				new Date(System.currentTimeMillis() + tokenTtlInMinutes * 60_000L)
-			).compact();
+			.setExpiration(expiresAt);
+
+		log.info("JWS token has been created for {}: claims: {}, expires: {}", account, claims, expiresAt);
+
+		return token.compact();
 	}
 
 	@Transactional
 	public String createRefreshToken(Account account) {
+		log.info("Creating refresh token for {}", account);
+		Optional<RefreshToken> previousRefreshToken = refreshTokenRepository.getByAccount(account);
+		previousRefreshToken.ifPresent(
+			rt -> {
+				refreshTokenRepository.delete(rt);
+				refreshTokenRepository.flush();
+				log.info("Previous refresh token has been deleted: {}", rt);
+			}
+		);
+
 		Date expiresAt = new Date(System.currentTimeMillis() + refreshTokenTtlInHours * 3600_000);
 		RefreshToken refreshToken = refreshTokenRepository.save(
 			new RefreshToken()
 				.setAccount(account)
 				.setExpiresAt(expiresAt)
 		);
+
+		log.info("A new refresh token has been created: {}", refreshToken);
+
 		return Jwts.builder()
 			.setId(refreshToken.getId().toString())
 			.claim("userId", account.getId())

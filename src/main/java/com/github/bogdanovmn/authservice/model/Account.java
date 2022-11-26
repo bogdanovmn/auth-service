@@ -2,6 +2,7 @@ package com.github.bogdanovmn.authservice.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,13 +22,16 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "account")
+@ToString(onlyExplicitlyIncluded = true)
 public class Account {
 	@Id
 	@GeneratedValue
+	@ToString.Include
 	private UUID id;
 
 	private String name;
 	private String encodedPassword;
+	@ToString.Include
 	private String email;
 
 	@ManyToMany(fetch = FetchType.EAGER)

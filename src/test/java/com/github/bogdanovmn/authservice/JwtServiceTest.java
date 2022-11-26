@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,6 +29,7 @@ class JwtServiceTest {
 	void createToken() {
 		String token = jwtService.createToken(
 			new Account()
+				.setId(UUID.randomUUID())
 				.setName("Joe")
 				.setRoles(
 					Set.of(
