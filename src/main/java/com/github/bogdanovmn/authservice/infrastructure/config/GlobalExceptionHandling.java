@@ -18,8 +18,7 @@ import java.util.stream.Collectors;
 
 @ControllerAdvice
 @Slf4j
-public
-class GlobalExceptionHandling {
+public class GlobalExceptionHandling {
 
 	@ExceptionHandler(value = Exception.class)
 	public ResponseEntity<ExceptionResponse> defaultError(HttpServletRequest req, Exception ex) throws Exception {

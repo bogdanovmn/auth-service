@@ -3,13 +3,12 @@ package com.github.bogdanovmn.authservice.login;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bogdanovmn.authservice.AccountService;
 import com.github.bogdanovmn.authservice.JwtService;
+import com.github.bogdanovmn.authservice.fixture.RoleFixture;
 import com.github.bogdanovmn.authservice.infrastructure.config.GlobalExceptionHandling;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtTokenFilter;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.WebSecurity;
 import com.github.bogdanovmn.authservice.model.Account;
 import com.github.bogdanovmn.authservice.model.AccountRepository;
-import com.github.bogdanovmn.authservice.model.Application;
-import com.github.bogdanovmn.authservice.model.Role;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,8 +75,8 @@ class LoginControllerTest {
 						.setId(userId)
 						.setRoles(
 							Set.of(
-								new Role().setName(Role.Name.user).setApplication(new Application().setName("any")),
-								new Role().setName(Role.Name.moderator).setApplication(new Application().setName("app1"))
+								RoleFixture.standardUser(),
+								RoleFixture.moderator("app1")
 							)
 						)
 				)

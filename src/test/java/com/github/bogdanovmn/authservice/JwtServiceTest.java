@@ -1,8 +1,7 @@
 package com.github.bogdanovmn.authservice;
 
+import com.github.bogdanovmn.authservice.fixture.RoleFixture;
 import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.Application;
-import com.github.bogdanovmn.authservice.model.Role;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +26,7 @@ class JwtServiceTest {
 				.setName("Joe")
 				.setRoles(
 					Set.of(
-						new Role()
-							.setName(Role.Name.user)
-							.setApplication(
-								new Application().setName("any")
-							)
+						RoleFixture.standardUser()
 					)
 				)
 		);
