@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+FILE_SUFFIX=$1
+
+PRIVATE_FILE_NAME_PREFIX="rsa-private-${FILE_SUFFIX}"
+PUBLIC_FILE_NAME_PREFIX="rsa-public-${FILE_SUFFIX}"
+
+PRIVATE_FILE_NAME_DER="$PRIVATE_FILE_NAME_PREFIX.der"
+PUBLIC_FILE_NAME_DER="$PUBLIC_FILE_NAME_PREFIX.der"
+
+openssl genrsa -out "$PRIVATE_FILE_NAME_PREFIX" 4096
+openssl rsa -in "$PRIVATE_FILE_NAME_PREFIX" -outform DER -pubout -out "$PUBLIC_FILE_NAME_DER"
+openssl pkcs8 -topk8 -nocrypt -in "$PRIVATE_FILE_NAME_PREFIX" -out "$PRIVATE_FILE_NAME_DER" -outform der
+
+rm "$PRIVATE_FILE_NAME_PREFIX"
+
+echo "created files:"
+echo "$PRIVATE_FILE_NAME_DER"
+echo "$PUBLIC_FILE_NAME_DER"

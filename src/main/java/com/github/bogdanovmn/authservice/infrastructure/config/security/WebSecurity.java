@@ -30,7 +30,8 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 
 		http.authorizeRequests()
 			.antMatchers(HttpMethod.POST, "/accounts").anonymous()
-			.antMatchers(HttpMethod.POST, "/login").anonymous()
+			.antMatchers(HttpMethod.POST, "/jwt").anonymous()
+			.antMatchers(HttpMethod.PUT, "/jwt").anonymous()
 			.antMatchers("/actuator/prometheus").permitAll()
 //			.antMatchers("/admin/**").hasAuthority(UserRole.Type.Admin.name())
 //			.antMatchers("/invites/**").hasAuthority(UserRole.Type.Invite.name())

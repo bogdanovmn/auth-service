@@ -1,11 +1,11 @@
-package com.github.bogdanovmn.authservice.login;
+package com.github.bogdanovmn.authservice.token;
 
 import lombok.Builder;
 import lombok.Value;
 
 @Value
 @Builder
-class LoginResponse {
+class JwtResponse {
 	String token;
 	String refreshToken;
 }

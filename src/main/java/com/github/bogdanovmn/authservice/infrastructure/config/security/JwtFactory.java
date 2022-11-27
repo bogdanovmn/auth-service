@@ -1,11 +1,7 @@
-package com.github.bogdanovmn.authservice;
+package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
 import com.github.bogdanovmn.authservice.common.FileResource;
 import com.github.bogdanovmn.authservice.common.RSAKey;
-import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.RefreshToken;
-import com.github.bogdanovmn.authservice.model.RefreshTokenRepository;
-import com.github.bogdanovmn.authservice.model.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtBuilder;
@@ -13,8 +9,7 @@ import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -24,13 +19,12 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
-@Service
+@Component
 @RequiredArgsConstructor
 @Slf4j
-public class JwtService {
+public class JwtFactory {
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
 
@@ -46,8 +40,6 @@ public class JwtService {
 	@Value("${jwt.refresh-token.ttl-in-hours:48}")
 	private final long refreshTokenTtlInHours;
 
-	private final RefreshTokenRepository refreshTokenRepository;
-
 	@PostConstruct
 	public void loadKeys() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 		log.info("JWT private key loading: {}", privateKeyPath);
@@ -61,59 +53,43 @@ public class JwtService {
 		).asPublicKey();
 	}
 
-	public String createToken(Account account) {
-		Map<String, Object> claims = Map.of(
-			"roles",    account.getRoles().stream().map(Role::toString).collect(Collectors.toSet()),
-			"userId",   account.getId(),
-			"userName", account.getName()
-		);
+	public String createToken(Map<String, Object> claims) {
 		Date expiresAt = new Date(System.currentTimeMillis() + tokenTtlInMinutes * 60_000L);
 
 		JwtBuilder token = Jwts.builder()
 			.setClaims(claims)
 			.signWith(privateKey)
 			.setIssuedAt(new Date())
-			.setExpiration(expiresAt);
+			.setExpiration(expiresAt)
+			.setId(UUID.randomUUID().toString());
 
-		log.info("JWS token has been created for {}: claims: {}, expires: {}", account, claims, expiresAt);
+		log.info("JWS token has been created: claims={}, expires={}", claims, expiresAt);
 
 		return token.compact();
 	}
 
-	@Transactional
-	public String createRefreshToken(Account account) {
-		log.info("Creating refresh token for {}", account);
-		Optional<RefreshToken> previousRefreshToken = refreshTokenRepository.getByAccount(account);
-		previousRefreshToken.ifPresent(
-			rt -> {
-				refreshTokenRepository.delete(rt);
-				refreshTokenRepository.flush();
-				log.info("Previous refresh token has been deleted: {}", rt);
-			}
-		);
-
-		Date expiresAt = new Date(System.currentTimeMillis() + refreshTokenTtlInHours * 3600_000);
-		RefreshToken refreshToken = refreshTokenRepository.save(
-			new RefreshToken()
-				.setAccount(account)
-				.setExpiresAt(expiresAt)
-		);
-
-		log.info("A new refresh token has been created: {}", refreshToken);
-
-		return Jwts.builder()
-			.setId(refreshToken.getId().toString())
-			.claim("userId", account.getId())
+	public String createRefreshToken(UUID tokenId, Map<String, Object> claims) {
+		Date expiresAt = refreshTokenExpiresAt();
+		JwtBuilder token = Jwts.builder()
+			.setClaims(claims)
 			.signWith(privateKey)
 			.setIssuedAt(new Date())
 			.setExpiration(expiresAt)
-		.compact();
+			.setId(tokenId.toString());
+
+		log.info("JWS refresh token has been created: id={}, claims={}, expires={}", tokenId, claims, expiresAt);
+
+		return token.compact();
 	}
 
-	public Jws<Claims> parse(String token) {
+	public Jws<Claims> checkSignatureAndReturnClaims(String token) {
 		return Jwts.parserBuilder()
 			.setSigningKey(publicKey)
 			.build()
 			.parseClaimsJws(token);
+	}
+
+	public Date refreshTokenExpiresAt() {
+		return new Date(System.currentTimeMillis() + refreshTokenTtlInHours * 3600_000);
 	}
 }

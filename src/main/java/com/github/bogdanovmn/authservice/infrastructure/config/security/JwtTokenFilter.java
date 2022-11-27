@@ -1,6 +1,5 @@
 package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
-import com.github.bogdanovmn.authservice.JwtService;
 import com.github.bogdanovmn.authservice.model.Account;
 import com.github.bogdanovmn.authservice.model.AccountRepository;
 import io.jsonwebtoken.Claims;
@@ -27,7 +26,7 @@ import java.util.UUID;
 @Slf4j
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-	private final JwtService jwtService;
+	private final JwtFactory jwtFactory;
 	private final AccountRepository accountRepository;
 
 	@Override
@@ -45,7 +44,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		// Get jwt token and validate
 		Jws<Claims> parsedToken;
 		try {
-			parsedToken = jwtService.parse(token.get());
+			parsedToken = jwtFactory.checkSignatureAndReturnClaims(token.get());
 		} catch (Exception ex) {
 			log.warn("JWT token parsing error: {}, token: {}", ex.getMessage(), token);
 			chain.doFilter(request, response);

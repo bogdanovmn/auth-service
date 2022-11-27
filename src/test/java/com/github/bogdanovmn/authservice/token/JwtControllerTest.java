@@ -1,7 +1,7 @@
-package com.github.bogdanovmn.authservice.login;
+package com.github.bogdanovmn.authservice.token;
 
 import com.github.bogdanovmn.authservice.AccountService;
-import com.github.bogdanovmn.authservice.JwtService;
+import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.model.Account;
 import com.github.bogdanovmn.authservice.model.AccountRepository;
 import com.github.bogdanovmn.authservice.model.RefreshToken;
@@ -29,12 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ContextConfiguration(
 	classes = {
-		LoginController.class,
+		JwtController.class,
+		JwtService.class
 	}
 )
-class LoginControllerTest extends AbstractControllerTest {
+class JwtControllerTest extends AbstractControllerTest {
 	@Autowired
 	private JwtService jwtService;
+
+	@Autowired
+	private JwtFactory jwtFactory;
 
 	@MockBean
 	private AccountService accountService;
@@ -43,7 +47,7 @@ class LoginControllerTest extends AbstractControllerTest {
 	private AccountRepository accountRepository;
 
 	@Test
-	void loginIsOk() throws Exception {
+	void exchangeIsOk() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		final String userName = "Joe";
 		final String email = "joe@mail.ru";
@@ -72,11 +76,11 @@ class LoginControllerTest extends AbstractControllerTest {
 		).thenReturn(new RefreshToken().setId(refreshTokenId));
 
 		MvcResult requestResult = this.mockMvc.perform(
-				post("/login")
+				post("/jwt")
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(
 						jsonMapper.writeValueAsString(
-							LoginRequest.builder()
+							ExchangeCredentialsToJwtRequest.builder()
 								.email(email)
 								.password(password)
 							.build()
@@ -86,14 +90,14 @@ class LoginControllerTest extends AbstractControllerTest {
 			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 			.andReturn();
 
-		LoginResponse response = jsonMapper.readValue(
+		JwtResponse response = jsonMapper.readValue(
 			requestResult.getResponse().getContentAsString(),
-			LoginResponse.class
+			JwtResponse.class
 		);
 
 		// Check JWS token
 
-		Claims tokenBody = jwtService.parse(response.getToken()).getBody();
+		Claims tokenBody = jwtFactory.checkSignatureAndReturnClaims(response.getToken()).getBody();
 		assertEquals(
 			userName,
 			tokenBody.get("userName")
@@ -109,7 +113,7 @@ class LoginControllerTest extends AbstractControllerTest {
 
 		// Check Refresh token
 
-		Claims refreshTokenBody = jwtService.parse(response.getRefreshToken()).getBody();
+		Claims refreshTokenBody = jwtFactory.checkSignatureAndReturnClaims(response.getRefreshToken()).getBody();
 		assertEquals(
 			userId.toString(),
 			refreshTokenBody.get("userId")
@@ -124,11 +128,11 @@ class LoginControllerTest extends AbstractControllerTest {
 	@Test
 	void accountNotFound() throws Exception {
 		this.mockMvc.perform(
-			post("/login")
+			post("/jwt")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(
 					jsonMapper.writeValueAsString(
-						LoginRequest.builder()
+						ExchangeCredentialsToJwtRequest.builder()
 							.email("joe@mail.ru")
 							.password("secret")
 						.build()
@@ -140,11 +144,11 @@ class LoginControllerTest extends AbstractControllerTest {
 	@Test
 	void badRequest() throws Exception {
 		this.mockMvc.perform(
-			post("/login")
+			post("/jwt")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(
 					jsonMapper.writeValueAsString(
-						LoginRequest.builder()
+						ExchangeCredentialsToJwtRequest.builder()
 							.email("joe@mail.ru")
 							.password("")
 						.build()
@@ -153,11 +157,11 @@ class LoginControllerTest extends AbstractControllerTest {
 		).andExpect(status().isBadRequest());
 
 		this.mockMvc.perform(
-			post("/login")
+			post("/jwt")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(
 					jsonMapper.writeValueAsString(
-						LoginRequest.builder()
+						ExchangeCredentialsToJwtRequest.builder()
 							.email("")
 							.password("secret")
 						.build()
@@ -166,11 +170,11 @@ class LoginControllerTest extends AbstractControllerTest {
 		).andExpect(status().isBadRequest());
 
 		this.mockMvc.perform(
-			post("/login")
+			post("/jwt")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(
 					jsonMapper.writeValueAsString(
-						LoginRequest.builder()
+						ExchangeCredentialsToJwtRequest.builder()
 							.email("joe@mail.ru")
 						.build()
 					)

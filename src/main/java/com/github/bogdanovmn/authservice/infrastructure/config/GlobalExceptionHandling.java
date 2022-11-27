@@ -43,7 +43,10 @@ public class GlobalExceptionHandling {
 		return exceptionResponse(req, ex, HttpStatus.CONFLICT.value());
 	}
 
-	@ExceptionHandler(value = BindException.class)
+	@ExceptionHandler(value = {
+		BindException.class,
+		IllegalArgumentException.class
+	})
 	public ResponseEntity<ExceptionResponse> badRequest(HttpServletRequest req, Exception ex) throws Exception {
 		return exceptionResponse(req, ex, HttpStatus.BAD_REQUEST.value());
 	}

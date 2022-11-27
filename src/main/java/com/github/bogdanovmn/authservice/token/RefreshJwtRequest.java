@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.authservice.login;
+package com.github.bogdanovmn.authservice.token;
 
 import lombok.Builder;
 import lombok.Value;
@@ -7,9 +7,7 @@ import javax.validation.constraints.NotEmpty;
 
 @Value
 @Builder
-class LoginRequest {
+class RefreshJwtRequest {
 	@NotEmpty
-	String email;
-	@NotEmpty
-	String password;
+	String refreshToken;
 }
