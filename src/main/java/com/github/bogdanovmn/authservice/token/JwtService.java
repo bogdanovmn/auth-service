@@ -29,7 +29,7 @@ class JwtService {
 	@Transactional
 	public JwtResponse createTokensByAccountCredentials(ExchangeCredentialsToJwtRequest credentials) {
 		Account account = accountService.getByEmailAndPassword(credentials.getEmail(), credentials.getPassword())
-			.orElseThrow(NoSuchElementException::new);
+			.orElseThrow(() -> new NoSuchElementException("Can't find a user with the email and password"));
 
 		return responseWithTokens(account);
 	}

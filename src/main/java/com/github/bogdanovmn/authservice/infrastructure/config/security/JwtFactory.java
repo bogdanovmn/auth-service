@@ -34,14 +34,14 @@ public class JwtFactory {
 	@Value("${jwt.public-key-path:}")
 	private final String publicKeyPath;
 
-	@Value("${jwt.ttl-in-minutes:10}")
+	@Value("${jwt.ttl-in-minutes:30}")
 	private final long tokenTtlInMinutes;
 
 	@Value("${jwt.refresh-token.ttl-in-hours:48}")
 	private final long refreshTokenTtlInHours;
 
 	@PostConstruct
-	public void loadKeys() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+	public void loadKeys() throws IOException {
 		log.info("JWT private key loading: {}", privateKeyPath);
 		privateKey = RSAKey.ofDER(
 			new FileResource(privateKeyPath).content()

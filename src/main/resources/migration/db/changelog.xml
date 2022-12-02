@@ -17,6 +17,7 @@
 				email varchar NOT NULL,
 				name varchar NOT NULL,
 				encoded_password varchar NOT NULL,
+				enabled boolean NOT NULL DEFAULT true,
 				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 				updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

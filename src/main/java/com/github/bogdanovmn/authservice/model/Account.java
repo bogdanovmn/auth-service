@@ -34,6 +34,9 @@ public class Account {
 	@ToString.Include
 	private String email;
 
+	@ToString.Include
+	private boolean enabled;
+
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(
 		name = "account2role",

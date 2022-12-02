@@ -13,4 +13,14 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 		"""
 	)
 	Role getBasicUserRole();
+
+	@Query(
+		nativeQuery = true,
+		value = """
+			SELECT r.* FROM role r
+			JOIN application a ON r.app_id = a.id
+			WHERE r.name = 'admin' AND a.name = 'any'
+		"""
+	)
+	Role getBasicAdminRole();
 }

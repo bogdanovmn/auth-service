@@ -1,7 +1,5 @@
 package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
-import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.AccountRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +24,7 @@ import java.util.UUID;
 public class JwtTokenFilter extends OncePerRequestFilter {
 
 	private final JwtFactory jwtFactory;
-	private final AccountRepository accountRepository;
+	private final JwtBasedUserDetailsFactory jwtBasedUserDetailsFactory;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request,
@@ -51,19 +48,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		// Get user identity and set it on the spring security context
-		UUID userId = parsedToken.getBody().get("userId", UUID.class);
-		Optional<Account> user = accountRepository.findById(
-			userId
-		);
-		if (user.isEmpty()) {
-			log.warn("There is no user with id = {}", userId);
-			chain.doFilter(request, response);
-			return;
-		}
-
-		UserDetails userDetails = new DefaultUserDetails(user.get());
-
+		UserDetails userDetails = jwtBasedUserDetailsFactory.fromJwtClaims(parsedToken.getBody());
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 			userDetails,
 			null,
