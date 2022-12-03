@@ -1,6 +1,6 @@
-package com.github.bogdanovmn.authservice.management;
+package com.github.bogdanovmn.authservice.feature.management;
 
-import com.github.bogdanovmn.authservice.AlreadyExistsException;
+import com.github.bogdanovmn.authservice.feature.AlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

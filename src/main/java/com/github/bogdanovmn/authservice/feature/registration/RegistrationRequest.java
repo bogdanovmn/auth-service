@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.authservice.registration;
+package com.github.bogdanovmn.authservice.feature.registration;
 
 import lombok.Builder;
 import lombok.Value;

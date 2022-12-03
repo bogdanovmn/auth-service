@@ -1,6 +1,6 @@
-package com.github.bogdanovmn.authservice.token;
+package com.github.bogdanovmn.authservice.feature.token;
 
-import com.github.bogdanovmn.authservice.AccountService;
+import com.github.bogdanovmn.authservice.feature.AccountService;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.model.Account;
 import com.github.bogdanovmn.authservice.model.AccountRepository;

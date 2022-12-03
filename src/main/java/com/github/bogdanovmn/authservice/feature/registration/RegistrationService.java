@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.authservice.registration;
+package com.github.bogdanovmn.authservice.feature.registration;
 
 import com.github.bogdanovmn.authservice.model.Account;
 import com.github.bogdanovmn.authservice.model.AccountRepository;

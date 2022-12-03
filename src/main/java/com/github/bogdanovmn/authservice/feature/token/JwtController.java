@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.authservice.token;
+package com.github.bogdanovmn.authservice.feature.token;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

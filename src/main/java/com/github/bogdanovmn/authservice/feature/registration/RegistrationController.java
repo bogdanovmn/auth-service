@@ -1,7 +1,7 @@
-package com.github.bogdanovmn.authservice.registration;
+package com.github.bogdanovmn.authservice.feature.registration;
 
-import com.github.bogdanovmn.authservice.AccountService;
-import com.github.bogdanovmn.authservice.AlreadyExistsException;
+import com.github.bogdanovmn.authservice.feature.AccountService;
+import com.github.bogdanovmn.authservice.feature.AlreadyExistsException;
 import com.github.bogdanovmn.authservice.model.Account;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

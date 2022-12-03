@@ -36,8 +36,10 @@ class JwtFactoryTest {
 			claims.get("userName")
 		);
 		assertEquals(
-			List.of("any:user", "any:admin"),
-			claims.get("roles")
+			Set.of("any:user", "any:admin"),
+			Set.copyOf(
+				(List<String>) claims.get("roles")
+			)
 		);
 	}
 

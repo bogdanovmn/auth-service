@@ -1,6 +1,6 @@
-package com.github.bogdanovmn.authservice.registration;
+package com.github.bogdanovmn.authservice.feature.registration;
 
-import com.github.bogdanovmn.authservice.AccountService;
+import com.github.bogdanovmn.authservice.feature.AccountService;
 import com.github.bogdanovmn.authservice.model.Account;
 import com.github.bogdanovmn.authservice.model.AccountRepository;
 import com.github.bogdanovmn.authservice.test.AbstractControllerTest;

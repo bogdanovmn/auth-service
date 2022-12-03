@@ -2,6 +2,7 @@ package com.github.bogdanovmn.authservice.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bogdanovmn.authservice.infrastructure.config.GlobalExceptionHandling;
+import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtBasedUserDetailsFactory;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtTokenFilter;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.WebSecurity;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 	classes = {
 		JwtFactory.class,
 		JwtTokenFilter.class,
+		JwtBasedUserDetailsFactory.class,
 		WebSecurity.class,
 		GlobalExceptionHandling.class
 	}
