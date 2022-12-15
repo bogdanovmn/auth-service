@@ -3,6 +3,7 @@ package com.github.bogdanovmn.authservice.model;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -26,7 +27,11 @@ import java.util.UUID;
 @ToString(onlyExplicitlyIncluded = true)
 public class Account {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(generator = "UUID")
+	@GenericGenerator(
+		name = "UUID",
+		strategy = "org.hibernate.id.UUIDGenerator"
+	)
 	@ToString.Include
 	private UUID id;
 
