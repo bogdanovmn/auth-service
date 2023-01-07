@@ -50,6 +50,20 @@ class JwtService {
 		return responseWithTokens(account);
 	}
 
+	@Transactional
+	public void deleteRefreshToken(String userName) {
+		Account account = accountService.getByName(userName);
+		log.info("Refresh JWT token deleting for {}", account);
+		Optional<RefreshToken> previousRefreshToken = refreshTokenRepository.getByAccount(account);
+		previousRefreshToken.ifPresent(
+			rt -> {
+				refreshTokenRepository.delete(rt);
+				refreshTokenRepository.flush();
+				log.info("Previous refresh token has been deleted: {}", rt);
+			}
+		);
+	}
+
 	private JwtResponse responseWithTokens(Account account) {
 		return JwtResponse.builder()
 			.token(
@@ -95,6 +109,5 @@ class JwtService {
 			refreshToken.getId(),
 			Map.of("userId", account.getId())
 		);
-
 	}
 }

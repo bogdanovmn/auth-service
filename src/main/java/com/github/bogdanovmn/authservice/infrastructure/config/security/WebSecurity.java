@@ -12,6 +12,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 
 @Configuration
@@ -54,5 +57,17 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 	@Bean
 	GrantedAuthorityDefaults grantedAuthorityDefaults() {
 		return new GrantedAuthorityDefaults(""); // Remove the ROLE_ prefix
+	}
+
+	@Bean
+	public CorsFilter corsFilter() {
+		UrlBasedCorsConfigurationSource source =
+			new UrlBasedCorsConfigurationSource();
+		CorsConfiguration config = new CorsConfiguration();
+		config.addAllowedOrigin("*");
+		config.addAllowedHeader("*");
+		config.addAllowedMethod("*");
+		source.registerCorsConfiguration("/**", config);
+		return new CorsFilter(source);
 	}
 }
