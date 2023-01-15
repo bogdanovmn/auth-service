@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.authservice.infrastructure.config;
 
 import com.github.bogdanovmn.authservice.feature.AlreadyExistsException;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,11 @@ public class GlobalExceptionHandling {
 		}
 
 		return exceptionResponse(req, ex, HttpStatus.INTERNAL_SERVER_ERROR.value());
+	}
+
+	@ExceptionHandler(value = ExpiredJwtException.class)
+	public ResponseEntity<ExceptionResponse> jwtValidationException(HttpServletRequest req, Exception ex) throws Exception {
+		return exceptionResponse(req, ex, HttpStatus.FORBIDDEN.value());
 	}
 
 	@ExceptionHandler(value = {
