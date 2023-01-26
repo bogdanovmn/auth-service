@@ -41,10 +41,14 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 			.and();
 
 		http.authorizeRequests()
-			.antMatchers(HttpMethod.POST, "/accounts").anonymous()
-			.antMatchers(HttpMethod.POST, "/jwt").anonymous()
-			.antMatchers(HttpMethod.PUT, "/jwt").anonymous()
-			.antMatchers(HttpMethod.GET, "/applications").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.POST,   "/accounts").anonymous()
+			.antMatchers(HttpMethod.POST,   "/jwt").anonymous()
+			.antMatchers(HttpMethod.PUT,    "/jwt").anonymous()
+			.antMatchers(HttpMethod.DELETE, "/jwt").authenticated()
+			.antMatchers(HttpMethod.POST,   "/sso/code").anonymous()
+			.antMatchers(HttpMethod.GET,    "/sso/jwt").anonymous()
+			.antMatchers(HttpMethod.PUT,    "/sso/jwt").authenticated()
+			.antMatchers(HttpMethod.GET,    "/applications").hasRole(Role.Name.admin.name())
 			.antMatchers("/actuator/prometheus").permitAll()
 			.anyRequest().authenticated();
 

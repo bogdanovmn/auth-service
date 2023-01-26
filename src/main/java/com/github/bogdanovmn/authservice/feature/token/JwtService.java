@@ -27,8 +27,8 @@ class JwtService {
 	private final RefreshTokenRepository refreshTokenRepository;
 
 	@Transactional
-	public JwtResponse createTokensByAccountCredentials(ExchangeCredentialsToJwtRequest credentials) {
-		Account account = accountService.getByEmailAndPassword(credentials.getEmail(), credentials.getPassword())
+	public JwtResponse createTokensByAccountCredentials(String email, String password) {
+		Account account = accountService.getByEmailAndPassword(email, password)
 			.orElseThrow(() -> new NoSuchElementException("Can't find a user with the email and password"));
 
 		return responseWithTokens(account);
@@ -45,9 +45,16 @@ class JwtService {
 				"Unknown refresh token: %s".formatted(token.getId())
 			);
 		}
-		Account account = currentToken.get().getAccount();
+		return responseWithTokens(
+			currentToken.get().getAccount()
+		);
+	}
 
-		return responseWithTokens(account);
+	@Transactional
+	public JwtResponse createTokensByAccountName(String accountName) {
+		return responseWithTokens(
+			accountService.getByName(accountName)
+		);
 	}
 
 	@Transactional

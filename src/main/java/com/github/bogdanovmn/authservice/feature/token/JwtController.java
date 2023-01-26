@@ -20,7 +20,7 @@ class JwtController {
 
 	@PostMapping
 	JwtResponse exchangeCredentialsToJwt(@RequestBody @Valid ExchangeCredentialsToJwtRequest request) {
-		return jwtService.createTokensByAccountCredentials(request);
+		return jwtService.createTokensByAccountCredentials(request.getEmail(), request.getPassword());
 	}
 
 	@PutMapping
