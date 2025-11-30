@@ -1,5 +1,5 @@
 services:
-  br-app:
+  auth-app:
     build: .
     image: auth-service:${BACKEND_VERSION:-latest}
     container_name: auth-service-container
