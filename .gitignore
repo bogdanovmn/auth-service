@@ -1,5 +1,7 @@
 .gitconfig
 .DS_Store
 .idea/
+.gigaide/
+logs/
 *.iml
 target/

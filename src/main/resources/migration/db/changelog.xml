@@ -12,17 +12,21 @@
 		</preConditions>
 
 		<sql>
+			CREATE DOMAIN account_status_domain AS varchar(8)
+			CHECK (VALUE ~ '^(CREATED|ACTIVE|INACTIVE)$');
+		</sql>
+
+		<sql>
 			CREATE TABLE account (
 				id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
 				email varchar NOT NULL,
 				name varchar NOT NULL,
 				encoded_password varchar NOT NULL,
-				enabled boolean NOT NULL DEFAULT true,
+				status account_status_domain NOT NULL DEFAULT 'CREATED',
 				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 				updated_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-				UNIQUE(email),
-				UNIQUE(name)
+				UNIQUE(email)
 			);
 
 			CREATE TABLE application (
@@ -66,7 +70,8 @@
 				(1, 'any'),
 				(2, 'bg-order'),
 				(3, 'translator'),
-				(4, 'memory-deluge');
+				(4, 'brating'),
+				(5, 'memory-deluge');
 
 			INSERT INTO role (id, name, app_id)
 			VALUES

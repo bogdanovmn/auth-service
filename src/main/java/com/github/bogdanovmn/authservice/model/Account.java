@@ -7,6 +7,8 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -25,6 +27,9 @@ import java.util.UUID;
 @Table(name = "account")
 @ToString(onlyExplicitlyIncluded = true)
 public class Account {
+
+	enum Status { CREATED, ACTIVE, INACTIVE }
+
 	@Id
 	@GeneratedValue(generator = "UUID")
 	@GenericGenerator(
@@ -40,7 +45,9 @@ public class Account {
 	private String email;
 
 	@ToString.Include
-	private boolean enabled;
+	@Enumerated(EnumType.STRING)
+	@Column(columnDefinition = "account_status_domain")
+	private Status status = Status.CREATED;
 
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(
