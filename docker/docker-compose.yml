@@ -15,6 +15,7 @@ services:
       - JAVA_OPTS=-Xmx384m
     volumes:
       - /var/log/auth-service:/app/logs
+      - /home/backend/auth-service/jwt:/app/jwt
     networks:
       - shared-network
 

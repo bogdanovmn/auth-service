@@ -1,0 +1,28 @@
+management:
+  endpoints.web.exposure.include: prometheus, health, metrics
+  prometheus.metrics.export.enabled: 'true'
+  metrics:
+    enable:
+      jvm: 'true'
+      percentiles-histogram:
+        http.server.requests: 'true'
+
+security.roles.application-id-prefix: auth
+
+spring:
+  application.name: auth-service
+  jpa:
+    hibernate.ddl-auto: validate
+    open-in-view: false
+  datasource:
+    url: jdbc:postgresql://hserver:5432/auth
+    username: root
+    password: 123
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 3
+
+  liquibase:
+    enabled: true
+    change-log: classpath:migration/db/changelog.xml
