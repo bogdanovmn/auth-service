@@ -35,7 +35,7 @@ public class JwtFactory {
 	@Value("${jwt.ttl-in-minutes:30}")
 	private final long tokenTtlInMinutes;
 
-	@Value("${jwt.refresh-token.ttl-in-hours:48}")
+	@Value("${jwt.refresh-token.ttl-in-hours:720}")
 	private final long refreshTokenTtlInHours;
 
 	@PostConstruct

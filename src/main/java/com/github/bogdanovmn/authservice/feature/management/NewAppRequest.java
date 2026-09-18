@@ -1,6 +1,6 @@
 package com.github.bogdanovmn.authservice.feature.management;
 
-import com.github.bogdanovmn.authservice.model.Role;
+import com.github.bogdanovmn.authservice.common.domain.Role;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;

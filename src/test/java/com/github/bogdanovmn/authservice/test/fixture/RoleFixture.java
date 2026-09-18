@@ -1,7 +1,7 @@
 package com.github.bogdanovmn.authservice.test.fixture;
 
-import com.github.bogdanovmn.authservice.model.Application;
-import com.github.bogdanovmn.authservice.model.Role;
+import com.github.bogdanovmn.authservice.feature.management.Application;
+import com.github.bogdanovmn.authservice.common.domain.Role;
 
 
 public record RoleFixture(String appName, Role.Name roleName) {

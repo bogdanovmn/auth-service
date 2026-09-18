@@ -1,12 +1,13 @@
-package com.github.bogdanovmn.authservice.model;
+package com.github.bogdanovmn.authservice.feature.management;
 
+import com.github.bogdanovmn.authservice.common.domain.Application;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ApplicationRepository extends JpaRepository<Application, Long> {
+interface ApplicationRepository extends JpaRepository<Application, Long> {
 
 	Optional<Application> getByName(String name);
 

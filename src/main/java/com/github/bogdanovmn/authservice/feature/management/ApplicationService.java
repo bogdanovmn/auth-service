@@ -1,10 +1,9 @@
 package com.github.bogdanovmn.authservice.feature.management;
 
-import com.github.bogdanovmn.authservice.feature.AlreadyExistsException;
-import com.github.bogdanovmn.authservice.model.Application;
-import com.github.bogdanovmn.authservice.model.ApplicationRepository;
-import com.github.bogdanovmn.authservice.model.ApplicationRepository.ApplicationStatisticQueryResult;
-import com.github.bogdanovmn.authservice.model.Role;
+import com.github.bogdanovmn.authservice.common.domain.AlreadyExistsException;
+import com.github.bogdanovmn.authservice.common.domain.Application;
+import com.github.bogdanovmn.authservice.common.domain.Role;
+import com.github.bogdanovmn.authservice.feature.management.ApplicationRepository.ApplicationStatisticQueryResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

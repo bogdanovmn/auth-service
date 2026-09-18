@@ -1,7 +1,5 @@
-package com.github.bogdanovmn.authservice.feature;
+package com.github.bogdanovmn.authservice.common.domain;
 
-import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.stereotype.Service;

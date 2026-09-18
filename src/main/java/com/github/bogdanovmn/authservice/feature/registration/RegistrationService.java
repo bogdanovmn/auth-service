@@ -1,9 +1,8 @@
 package com.github.bogdanovmn.authservice.feature.registration;
 
-import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.AccountRepository;
-import com.github.bogdanovmn.authservice.model.Role;
-import com.github.bogdanovmn.authservice.model.RoleRepository;
+import com.github.bogdanovmn.authservice.common.domain.Account;
+import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
+import com.github.bogdanovmn.authservice.common.domain.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.stereotype.Service;
@@ -14,7 +13,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class RegistrationService {
+class RegistrationService {
 	private final AccountRepository accountRepository;
 	private final RoleRepository roleRepository;
 

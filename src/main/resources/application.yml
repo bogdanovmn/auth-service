@@ -9,8 +9,15 @@ management:
 
 security.roles.application-id-prefix: auth
 
+jwt:
+  reset-password:
+    ttl-in-hours: 1
+
 spring:
   application.name: auth-service
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
   jpa:
     hibernate.ddl-auto: validate
     open-in-view: false

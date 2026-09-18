@@ -1,8 +1,7 @@
 package com.github.bogdanovmn.authservice.feature.registration;
 
-import com.github.bogdanovmn.authservice.feature.AccountService;
-import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.AccountRepository;
+import com.github.bogdanovmn.authservice.common.domain.AccountService;
+import com.github.bogdanovmn.authservice.common.domain.Account;
 import com.github.bogdanovmn.authservice.test.AbstractControllerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,9 +25,6 @@ class RegistrationControllerTest extends AbstractControllerTest {
 
 	@MockBean
 	private AccountService accountService;
-
-	@MockBean
-	private AccountRepository accountRepository;
 
 	@Test
 	void registrationIsOk() throws Exception {

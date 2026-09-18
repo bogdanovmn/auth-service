@@ -1,5 +1,6 @@
-package com.github.bogdanovmn.authservice.model;
+package com.github.bogdanovmn.authservice.feature.token;
 
+import com.github.bogdanovmn.authservice.common.domain.Account;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "refresh_token")
 @ToString(onlyExplicitlyIncluded = true)
-public class RefreshToken {
+class RefreshToken {
 	@Id
 	@GeneratedValue(generator = "UUID")
 	@GenericGenerator(

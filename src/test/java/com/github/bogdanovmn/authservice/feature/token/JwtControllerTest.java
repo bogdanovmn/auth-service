@@ -1,10 +1,8 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
-import com.github.bogdanovmn.authservice.feature.AccountService;
+import com.github.bogdanovmn.authservice.common.domain.AccountService;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
-import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.AccountRepository;
-import com.github.bogdanovmn.authservice.model.RefreshToken;
+import com.github.bogdanovmn.authservice.common.domain.Account;
 import com.github.bogdanovmn.authservice.test.AbstractControllerTest;
 import com.github.bogdanovmn.authservice.test.fixture.RoleFixture;
 import io.jsonwebtoken.Claims;
@@ -42,9 +40,6 @@ class JwtControllerTest extends AbstractControllerTest {
 
 	@MockBean
 	private AccountService accountService;
-
-	@MockBean
-	private AccountRepository accountRepository;
 
 	@Test
 	void exchangeIsOk() throws Exception {

@@ -1,6 +1,6 @@
 package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
-import com.github.bogdanovmn.authservice.model.Role;
+import com.github.bogdanovmn.authservice.common.domain.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +49,9 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.GET,    "/sso/jwt").anonymous()
 			.antMatchers(HttpMethod.PUT,    "/sso/jwt").authenticated()
 			.antMatchers(HttpMethod.GET,    "/applications").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.GET,    "/users").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.POST,   "/users/*/password-reset").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.PUT,    "/password-reset").anonymous()
 			.antMatchers("/actuator/prometheus").permitAll()
 			.anyRequest().authenticated();
 

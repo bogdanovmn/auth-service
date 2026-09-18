@@ -1,11 +1,9 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
-import com.github.bogdanovmn.authservice.feature.AccountService;
+import com.github.bogdanovmn.authservice.common.domain.AccountService;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
-import com.github.bogdanovmn.authservice.model.Account;
-import com.github.bogdanovmn.authservice.model.RefreshToken;
-import com.github.bogdanovmn.authservice.model.RefreshTokenRepository;
-import com.github.bogdanovmn.authservice.model.Role;
+import com.github.bogdanovmn.authservice.common.domain.Account;
+import com.github.bogdanovmn.authservice.common.domain.Role;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-class JwtService {
+public class JwtService {
 	private final AccountService accountService;
 	private final JwtFactory jwtFactory;
 	private final RefreshTokenRepository refreshTokenRepository;
@@ -95,15 +93,7 @@ class JwtService {
 
 	private String createRefreshToken(Account account) {
 		log.info("Creating refresh JWT token for {}", account);
-		Optional<RefreshToken> previousRefreshToken = refreshTokenRepository.getByAccount(account);
-		previousRefreshToken.ifPresent(
-			rt -> {
-				refreshTokenRepository.delete(rt);
-				refreshTokenRepository.flush();
-				log.info("Previous refresh token has been deleted: {}", rt);
-			}
-		);
-
+		deleteRefreshToken(account.getName());
 		RefreshToken refreshToken = refreshTokenRepository.save(
 			new RefreshToken()
 				.setAccount(account)

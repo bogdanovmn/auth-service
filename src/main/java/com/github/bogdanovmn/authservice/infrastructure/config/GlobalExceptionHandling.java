@@ -1,6 +1,6 @@
 package com.github.bogdanovmn.authservice.infrastructure.config;
 
-import com.github.bogdanovmn.authservice.feature.AlreadyExistsException;
+import com.github.bogdanovmn.authservice.common.domain.AlreadyExistsException;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;

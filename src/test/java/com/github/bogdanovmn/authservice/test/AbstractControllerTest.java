@@ -6,7 +6,8 @@ import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtBased
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtTokenFilter;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.WebSecurity;
-import com.github.bogdanovmn.authservice.model.RefreshTokenRepository;
+import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
+import com.github.bogdanovmn.authservice.feature.token.RefreshTokenRepository;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -36,4 +37,7 @@ public abstract class AbstractControllerTest {
 
 	@MockBean
 	protected RefreshTokenRepository refreshTokenRepository;
+
+	@MockBean
+	protected AccountRepository accountRepository;
 }

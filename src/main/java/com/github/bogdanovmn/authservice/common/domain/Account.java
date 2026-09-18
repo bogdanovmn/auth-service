@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.authservice.model;
+package com.github.bogdanovmn.authservice.common.domain;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +28,7 @@ import java.util.UUID;
 @ToString(onlyExplicitlyIncluded = true)
 public class Account {
 
-	enum Status { CREATED, ACTIVE, INACTIVE }
+	public enum Status { CREATED, ACTIVE, INACTIVE }
 
 	@Id
 	@GeneratedValue(generator = "UUID")
@@ -62,4 +62,8 @@ public class Account {
 
 	@Column(insertable = false, updatable = false)
 	private Date updatedAt;
+
+	@ToString.Include
+	@Column(name = "password_changed_at")
+	private Date passwordChangedAt;
 }

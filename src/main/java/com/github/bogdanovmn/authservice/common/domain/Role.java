@@ -1,4 +1,4 @@
-package com.github.bogdanovmn.authservice.model;
+package com.github.bogdanovmn.authservice.common.domain;
 
 import lombok.Getter;
 import lombok.Setter;

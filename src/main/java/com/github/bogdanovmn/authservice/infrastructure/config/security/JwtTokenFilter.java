@@ -1,5 +1,6 @@
 package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
+import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,6 +28,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 	private final JwtFactory jwtFactory;
 	private final JwtBasedUserDetailsFactory jwtBasedUserDetailsFactory;
+	private final AccountRepository accountRepository;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request,
@@ -48,6 +52,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 			return;
 		}
 
+		if (!isTokenActual(parsedToken.getBody())) {
+			log.warn("JWT token is stale, the password has been changed after the token was issued");
+			chain.doFilter(request, response);
+			return;
+		}
+
 		UserDetails userDetails = jwtBasedUserDetailsFactory.fromJwtClaims(parsedToken.getBody());
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 			userDetails,
@@ -61,6 +71,24 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 		SecurityContextHolder.getContext().setAuthentication(authentication);
 		chain.doFilter(request, response);
+	}
+
+	private boolean isTokenActual(Claims claims) {
+		String userId = claims.get("userId", String.class);
+		if (userId == null) {
+			// A token without a user id can't be linked to a password change
+			return true;
+		}
+		Date issuedAt = claims.getIssuedAt();
+		if (issuedAt == null) {
+			return true;
+		}
+		return accountRepository.findById(UUID.fromString(userId))
+			.map(
+				account -> account.getPasswordChangedAt() == null
+					|| issuedAt.getTime() >= account.getPasswordChangedAt().getTime()
+			)
+			.orElse(false);
 	}
 
 }

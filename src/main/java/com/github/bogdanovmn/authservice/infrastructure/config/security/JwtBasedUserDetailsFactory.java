@@ -1,6 +1,6 @@
 package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
-import com.github.bogdanovmn.authservice.model.Application;
+import com.github.bogdanovmn.authservice.common.domain.Application;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

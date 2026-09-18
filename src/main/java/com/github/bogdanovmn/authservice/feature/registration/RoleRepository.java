@@ -1,9 +1,10 @@
-package com.github.bogdanovmn.authservice.model;
+package com.github.bogdanovmn.authservice.feature.registration;
 
+import com.github.bogdanovmn.authservice.common.domain.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-public interface RoleRepository extends JpaRepository<Role, Long> {
+interface RoleRepository extends JpaRepository<Role, Long> {
 	@Query(
 		nativeQuery = true,
 		value = """
