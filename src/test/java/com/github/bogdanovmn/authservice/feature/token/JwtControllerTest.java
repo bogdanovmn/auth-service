@@ -1,8 +1,10 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import com.github.bogdanovmn.authservice.common.domain.AccountService;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.common.domain.Account;
+import com.github.bogdanovmn.authservice.infrastructure.audit.SecurityEventLogger;
 import com.github.bogdanovmn.authservice.test.AbstractControllerTest;
 import com.github.bogdanovmn.authservice.test.fixture.RoleFixture;
 import io.jsonwebtoken.Claims;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -20,6 +23,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -41,6 +45,9 @@ class JwtControllerTest extends AbstractControllerTest {
 	@MockBean
 	private AccountService accountService;
 
+	@MockBean
+	private SecurityEventLogger securityEventLogger;
+
 	@Test
 	void exchangeIsOk() throws Exception {
 		final UUID userId = UUID.randomUUID();
@@ -48,12 +55,15 @@ class JwtControllerTest extends AbstractControllerTest {
 		final String email = "joe@mail.ru";
 		final String password = "secret";
 
-		when(accountService.getByEmailAndPassword(email, password))
+		when(accountService.getByEmail(email))
 			.thenReturn(
 				Optional.of(
 					new Account()
 						.setName(userName)
 						.setId(userId)
+						.setEncodedPassword(
+							PasswordEncoderFactories.createDelegatingPasswordEncoder().encode(password)
+						)
 						.setRoles(
 							Set.of(
 								RoleFixture.standardUser(),
@@ -118,22 +128,61 @@ class JwtControllerTest extends AbstractControllerTest {
 			refreshTokenId.toString(),
 			refreshTokenBody.getId()
 		);
+
+		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN);
 	}
 
 	@Test
 	void accountNotFound() throws Exception {
+		final String email = "joe@mail.ru";
+		when(accountService.getByEmail(email))
+			.thenReturn(Optional.empty());
+
 		this.mockMvc.perform(
 			post("/jwt")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(
 					jsonMapper.writeValueAsString(
 						ExchangeCredentialsToJwtRequest.builder()
-							.email("joe@mail.ru")
+							.email(email)
 							.password("secret")
 						.build()
 					)
 				)
 		).andExpect(status().isNotFound());
+
+		verify(securityEventLogger).logUnknownAttempt(email);
+	}
+
+	@Test
+	void invalidPasswordIsLoggedAsLoginFailed() throws Exception {
+		final UUID userId = UUID.randomUUID();
+		final String email = "joe@mail.ru";
+		when(accountService.getByEmail(email))
+			.thenReturn(
+				Optional.of(
+					new Account()
+						.setId(userId)
+						.setEncodedPassword(
+							PasswordEncoderFactories.createDelegatingPasswordEncoder().encode("secret")
+						)
+				)
+			);
+
+		this.mockMvc.perform(
+			post("/jwt")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(
+					jsonMapper.writeValueAsString(
+						ExchangeCredentialsToJwtRequest.builder()
+							.email(email)
+							.password("wrong")
+						.build()
+					)
+				)
+		).andExpect(status().isNotFound());
+
+		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN_FAILED);
 	}
 
 	@Test

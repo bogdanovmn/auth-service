@@ -1,7 +1,6 @@
 package com.github.bogdanovmn.authservice.common.domain;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
@@ -21,14 +20,6 @@ class AccountService {
 
 	public Optional<Account> getByEmail(String email) {
 		return accountRepository.findByEmail(email);
-	}
-
-	public Optional<Account> getByEmailAndPassword(String email, String password) {
-		return accountRepository.findByEmail(email)
-			.filter(
-				account -> PasswordEncoderFactories.createDelegatingPasswordEncoder()
-					.matches(password, account.getEncodedPassword())
-			);
 	}
 
 }

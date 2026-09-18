@@ -1,5 +1,6 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +21,11 @@ class JwtController {
 
 	@PostMapping
 	JwtResponse exchangeCredentialsToJwt(@RequestBody @Valid ExchangeCredentialsToJwtRequest request) {
-		return jwtService.createTokensByAccountCredentials(request.getEmail(), request.getPassword());
+		return jwtService.createTokensByAccountCredentials(
+			request.getEmail(),
+			request.getPassword(),
+			AccountSecurityEventType.LOGIN
+		);
 	}
 
 	@PutMapping
@@ -30,7 +35,7 @@ class JwtController {
 
 	@DeleteMapping
 	ResponseEntity<?> deleteRefreshToken(Principal currentUser) {
-		jwtService.deleteRefreshToken(currentUser.getName());
+		jwtService.logout(currentUser.getName());
 		return ResponseEntity.ok().build();
 	}
 }

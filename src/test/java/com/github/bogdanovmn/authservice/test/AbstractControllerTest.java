@@ -7,6 +7,8 @@ import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFacto
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtTokenFilter;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.WebSecurity;
 import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventRepository;
+import com.github.bogdanovmn.authservice.common.domain.FailedLoginAttemptRepository;
 import com.github.bogdanovmn.authservice.feature.token.RefreshTokenRepository;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,4 +42,10 @@ public abstract class AbstractControllerTest {
 
 	@MockBean
 	protected AccountRepository accountRepository;
+
+	@MockBean
+	protected AccountSecurityEventRepository accountSecurityEventRepository;
+
+	@MockBean
+	protected FailedLoginAttemptRepository failedLoginAttemptRepository;
 }

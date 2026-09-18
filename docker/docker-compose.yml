@@ -12,7 +12,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://shared-db:5432/auth
       - SPRING_PROFILES_ACTIVE=prod
       - OUTPUT=file
-      - JAVA_OPTS=-Xmx384m
+      - JAVA_OPTS=-Xmx128m -Xmn64m -XX:MaxMetaspaceSize=96m -XX:CompressedClassSpaceSize=15m -Xss512k -XX:ReservedCodeCacheSize=26M -XX:MaxDirectMemorySize=16m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError -XX:+UseCodeCacheFlushing -XX:+PrintFlagsFinal -verbose:sizes -Djdk.nio.maxCachedBufferSize=262144
     volumes:
       - /var/log/auth-service:/app/logs
       - /home/backend/auth-service/jwt:/app/jwt

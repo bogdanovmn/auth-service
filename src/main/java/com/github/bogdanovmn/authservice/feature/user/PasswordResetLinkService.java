@@ -2,7 +2,9 @@ package com.github.bogdanovmn.authservice.feature.user;
 
 import com.github.bogdanovmn.authservice.common.domain.Account;
 import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import com.github.bogdanovmn.authservice.feature.token.JwtService;
+import com.github.bogdanovmn.authservice.infrastructure.audit.SecurityEventLogger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -19,6 +21,7 @@ class PasswordResetLinkService {
 	private final PasswordResetTokenRepository passwordResetTokenRepository;
 	private final AccountRepository accountRepository;
 	private final JwtService jwtService;
+	private final SecurityEventLogger securityEventLogger;
 
 	@Value("${jwt.reset-password.ttl-in-hours:1}")
 	private final long resetTokenTtlInHours;
@@ -62,6 +65,7 @@ class PasswordResetLinkService {
 		passwordResetTokenRepository.delete(token);
 		passwordResetTokenRepository.flush();
 
+		securityEventLogger.log(account.getId(), AccountSecurityEventType.PASSWORD_CHANGED);
 		jwtService.deleteRefreshToken(account.getName());
 	}
 }

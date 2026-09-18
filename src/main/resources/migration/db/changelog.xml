@@ -96,4 +96,33 @@
 			CREATE INDEX idx_password_reset_token_account ON password_reset_token(account_id);
 		</sql>
 	</changeSet>
+
+	<changeSet id="20260919-account-security-events" author="bogdanovmn">
+		<sql>
+			CREATE TABLE account_security_event (
+				id bigserial PRIMARY KEY,
+				account_id uuid NOT NULL,
+				type varchar(32) NOT NULL,
+				ip varchar(45) NULL,
+				user_agent varchar(512) NULL,
+				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+				CONSTRAINT fk_account_security_event_account FOREIGN KEY(account_id) REFERENCES account(id)
+			);
+
+			CREATE INDEX idx_account_security_event_account_created
+				ON account_security_event(account_id, created_at DESC);
+
+			CREATE TABLE failed_login_attempt (
+				id bigserial PRIMARY KEY,
+				email varchar NOT NULL,
+				ip varchar(45) NULL,
+				user_agent varchar(512) NULL,
+				created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP
+			);
+
+			CREATE INDEX idx_failed_login_attempt_created
+				ON failed_login_attempt(created_at DESC);
+		</sql>
+	</changeSet>
 </databaseChangeLog>

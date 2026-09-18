@@ -1,5 +1,6 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +30,7 @@ class SsoTemporaryCodeExpiredTest {
 	void temporaryCodeExpired() {
 		String email = "email@mail.com";
 		String password = "pass";
-		when(jwtService.createTokensByAccountCredentials(email, password))
+		when(jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO))
 			.thenReturn(
 				JwtResponse.builder()
 					.refreshToken("r-token")

@@ -50,6 +50,8 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.PUT,    "/sso/jwt").authenticated()
 			.antMatchers(HttpMethod.GET,    "/applications").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/users").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.GET,    "/users/*/activity").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.GET,    "/login-attempts").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.POST,   "/users/*/password-reset").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.PUT,    "/password-reset").anonymous()
 			.antMatchers("/actuator/prometheus").permitAll()

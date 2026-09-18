@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +18,7 @@ class SsoService {
 
 	public String temporaryCode(String email, String password) {
 		return cachedCode(
-			jwtService.createTokensByAccountCredentials(email, password)
+			jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO)
 		);
 	}
 

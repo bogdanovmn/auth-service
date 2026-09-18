@@ -1,6 +1,6 @@
 package com.github.bogdanovmn.authservice.test.fixture;
 
-import com.github.bogdanovmn.authservice.feature.management.Application;
+import com.github.bogdanovmn.authservice.common.domain.Application;
 import com.github.bogdanovmn.authservice.common.domain.Role;
 
 
