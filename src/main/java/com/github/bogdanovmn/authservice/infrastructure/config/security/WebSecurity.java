@@ -49,6 +49,8 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.GET,    "/sso/jwt").anonymous()
 			.antMatchers(HttpMethod.PUT,    "/sso/jwt").authenticated()
 			.antMatchers(HttpMethod.GET,    "/applications").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.GET,    "/applications/public").authenticated()
+			.antMatchers(HttpMethod.PUT,    "/applications/*").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/users").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/users/*/activity").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/login-attempts").hasRole(Role.Name.admin.name())

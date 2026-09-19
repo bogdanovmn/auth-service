@@ -28,6 +28,10 @@ public class Application {
 
 	private String name;
 
+	private String shortDescription;
+
+	private String url;
+
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "application")
 	private List<Role> roles;
 

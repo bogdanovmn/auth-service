@@ -97,6 +97,13 @@
 		</sql>
 	</changeSet>
 
+	<changeSet id="20260919-application-description" author="bogdanovmn">
+		<sql>
+			ALTER TABLE application ADD COLUMN short_description varchar NULL;
+			ALTER TABLE application ADD COLUMN url varchar NULL;
+		</sql>
+	</changeSet>
+
 	<changeSet id="20260919-account-security-events" author="bogdanovmn">
 		<sql>
 			CREATE TABLE account_security_event (

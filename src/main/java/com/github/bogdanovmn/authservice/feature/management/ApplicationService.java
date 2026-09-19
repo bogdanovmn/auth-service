@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,8 @@ class ApplicationService {
 				ApplicationStatistic.ApplicationStatisticBuilder result = ApplicationStatistic.builder();
 				result.id(stat.get(0).getAppId());
 				result.name(stat.get(0).getAppName());
+				result.shortDescription(stat.get(0).getShortDescription());
+				result.url(stat.get(0).getUrl());
 				stat.stream()
 					.filter(s -> s.getRoleName() != null)
 					.forEach(
@@ -56,5 +59,38 @@ class ApplicationService {
 				return result.build();
 			})
 			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<PublicService> publicServices() {
+		return applicationRepository.findAll().stream()
+			.filter(app -> app.getUrl() != null && !app.getUrl().isBlank())
+			.map(
+				app -> PublicService.builder()
+					.name(app.getName())
+					.shortDescription(app.getShortDescription())
+					.url(app.getUrl())
+					.build()
+			)
+			.toList();
+	}
+
+	@Transactional
+	public void update(Long id, UpdateAppRequest request) {
+		Application app = applicationRepository.findById(id)
+			.orElseThrow(
+				() -> new NoSuchElementException("Application with id '%s' has not been found".formatted(id))
+			);
+		applicationRepository.getByName(request.getName())
+			.filter(another -> !another.getId().equals(id))
+			.ifPresent(
+				another -> {
+					throw new AlreadyExistsException(another.getName());
+				}
+			);
+
+		app.setName(request.getName());
+		app.setShortDescription(request.getShortDescription());
+		app.setUrl(request.getUrl());
 	}
 }
