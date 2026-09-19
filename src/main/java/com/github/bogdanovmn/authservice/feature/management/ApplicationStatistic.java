@@ -13,6 +13,7 @@ class ApplicationStatistic {
 	String name;
 	String shortDescription;
 	String url;
+	Boolean active;
 	@Singular
 	List<Role> roles;
 

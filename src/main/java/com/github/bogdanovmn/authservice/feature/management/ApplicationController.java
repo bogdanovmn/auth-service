@@ -3,6 +3,7 @@ package com.github.bogdanovmn.authservice.feature.management;
 import com.github.bogdanovmn.authservice.common.domain.AlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +43,12 @@ class ApplicationController {
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateApp(@PathVariable Long id, @RequestBody @Valid UpdateAppRequest app) {
 		applicationService.update(id, app);
+		return ResponseEntity.ok().build();
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<?> deactivateApp(@PathVariable Long id) {
+		applicationService.deactivate(id);
 		return ResponseEntity.ok().build();
 	}
 }

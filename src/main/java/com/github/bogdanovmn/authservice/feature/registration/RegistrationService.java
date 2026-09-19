@@ -3,6 +3,7 @@ package com.github.bogdanovmn.authservice.feature.registration;
 import com.github.bogdanovmn.authservice.common.domain.Account;
 import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
 import com.github.bogdanovmn.authservice.common.domain.Role;
+import com.github.bogdanovmn.authservice.common.domain.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.stereotype.Service;

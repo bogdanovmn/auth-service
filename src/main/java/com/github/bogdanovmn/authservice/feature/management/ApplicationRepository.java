@@ -15,13 +15,13 @@ interface ApplicationRepository extends JpaRepository<Application, Long> {
 		nativeQuery = true,
 		value = """
 			SELECT
-				a.id appId, a.name appName, a.short_description shortDescription, a.url url,
+				a.id appId, a.name appName, a.short_description shortDescription, a.url url, a.active active,
 				r.name roleName,
 				COUNT(ar.role_id) usersCount
 			FROM application a
 			LEFT JOIN role r ON r.app_id = a.id
 			LEFT JOIN account2role ar ON ar.role_id = r.id
-			GROUP BY a.id, a.name, a.short_description, a.url, r.name
+			GROUP BY a.id, a.name, a.short_description, a.url, a.active, r.name
 			ORDER BY a.name;
 		"""
 	)
@@ -32,6 +32,7 @@ interface ApplicationRepository extends JpaRepository<Application, Long> {
 		String getAppName();
 		String getShortDescription();
 		String getUrl();
+		Boolean getActive();
 		String getRoleName();
 		int getUsersCount();
 	}

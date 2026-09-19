@@ -104,6 +104,29 @@
 		</sql>
 	</changeSet>
 
+	<changeSet id="20260919-application-active" author="bogdanovmn">
+		<sql>
+			ALTER TABLE application ADD COLUMN active boolean NOT NULL DEFAULT TRUE;
+		</sql>
+	</changeSet>
+
+	<changeSet id="20260919-sequences-sync" author="bogdanovmn">
+		<sql>
+			SELECT setval(
+				'application_id_seq',
+				(SELECT COALESCE(MAX(id), 1) FROM application),
+				(SELECT MAX(id) FROM application) IS NOT NULL
+			);
+		</sql>
+		<sql>
+			SELECT setval(
+				'role_id_seq',
+				(SELECT COALESCE(MAX(id), 1) FROM role),
+				(SELECT MAX(id) FROM role) IS NOT NULL
+			);
+		</sql>
+	</changeSet>
+
 	<changeSet id="20260919-account-security-events" author="bogdanovmn">
 		<sql>
 			CREATE TABLE account_security_event (

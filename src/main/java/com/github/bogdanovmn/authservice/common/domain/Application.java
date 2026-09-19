@@ -32,6 +32,8 @@ public class Application {
 
 	private String url;
 
+	private Boolean active = true;
+
 	@OneToMany(fetch = FetchType.EAGER, mappedBy = "application")
 	private List<Role> roles;
 

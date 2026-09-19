@@ -1,6 +1,7 @@
 package com.github.bogdanovmn.authservice.feature.management;
 
 import com.github.bogdanovmn.authservice.common.domain.Account;
+import com.github.bogdanovmn.authservice.common.domain.Role;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.test.AbstractControllerTest;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -87,6 +90,65 @@ class ApplicationControllerTest extends AbstractControllerTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{}")
 		).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void createIsForbiddenForNonAdmin() throws Exception {
+		when(accountRepository.findById(any(UUID.class)))
+			.thenReturn(Optional.of(new Account()));
+
+		this.mockMvc.perform(
+			post("/applications")
+				.header("Authorization", bearerUserToken())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{}")
+		).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void createIsAvailableForAdmin() throws Exception {
+		when(accountRepository.findById(any(UUID.class)))
+			.thenReturn(Optional.of(new Account()));
+
+		this.mockMvc.perform(
+			post("/applications")
+				.header("Authorization", bearerAdminToken())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(
+					jsonMapper.writeValueAsString(
+						NewAppRequest.builder()
+							.name("new-app")
+							.role(Role.Name.user)
+							.build()
+					)
+				)
+		).andExpect(status().isOk());
+
+		verify(applicationService).create(any(NewAppRequest.class));
+	}
+
+	@Test
+	void deactivateIsForbiddenForNonAdmin() throws Exception {
+		when(accountRepository.findById(any(UUID.class)))
+			.thenReturn(Optional.of(new Account()));
+
+		this.mockMvc.perform(
+			delete("/applications/1")
+				.header("Authorization", bearerUserToken())
+		).andExpect(status().isForbidden());
+	}
+
+	@Test
+	void deactivateIsAvailableForAdmin() throws Exception {
+		when(accountRepository.findById(any(UUID.class)))
+			.thenReturn(Optional.of(new Account()));
+
+		this.mockMvc.perform(
+			delete("/applications/1")
+				.header("Authorization", bearerAdminToken())
+		).andExpect(status().isOk());
+
+		verify(applicationService).deactivate(1L);
 	}
 
 	@Test
