@@ -23,8 +23,10 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -62,11 +64,12 @@ class JwtControllerTest extends AbstractControllerTest {
 		final String email = "joe@mail.ru";
 		final String password = "secret";
 
-		when(accountService.getByEmail(email))
+		when(accountService.findByEmail(email))
 			.thenReturn(
 				Optional.of(
 					new Account()
 						.setName(userName)
+						.setEmail(email)
 						.setId(userId)
 						.setEncodedPassword(
 							PasswordEncoderFactories.createDelegatingPasswordEncoder().encode(password)
@@ -142,7 +145,7 @@ class JwtControllerTest extends AbstractControllerTest {
 	@Test
 	void accountNotFound() throws Exception {
 		final String email = "joe@mail.ru";
-		when(accountService.getByEmail(email))
+		when(accountService.findByEmail(email))
 			.thenReturn(Optional.empty());
 
 		this.mockMvc.perform(
@@ -165,7 +168,7 @@ class JwtControllerTest extends AbstractControllerTest {
 	void invalidPasswordIsLoggedAsLoginFailed() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		final String email = "joe@mail.ru";
-		when(accountService.getByEmail(email))
+		when(accountService.findByEmail(email))
 			.thenReturn(
 				Optional.of(
 					new Account()
@@ -189,6 +192,42 @@ class JwtControllerTest extends AbstractControllerTest {
 				)
 		).andExpect(status().isNotFound());
 
+		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN_FAILED);
+	}
+
+	@Test
+	void inactiveAccountGetsNoTokens() throws Exception {
+		final UUID userId = UUID.randomUUID();
+		final String email = "joe@mail.ru";
+		when(accountService.findByEmail(email))
+			.thenReturn(
+				Optional.of(
+					new Account()
+						.setId(userId)
+						.setEmail(email)
+						.setStatus(Account.Status.INACTIVE)
+						.setEncodedPassword(
+							PasswordEncoderFactories.createDelegatingPasswordEncoder().encode("secret")
+						)
+				)
+			);
+
+		this.mockMvc.perform(
+			post("/jwt")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(
+					jsonMapper.writeValueAsString(
+						ExchangeCredentialsToJwtRequest.builder()
+							.email(email)
+							.password("secret")
+						.build()
+					)
+				)
+		)
+			.andExpect(status().isForbidden())
+			.andExpect(jsonPath("$.code").value(403));
+
+		verify(refreshTokenRepository, never()).save(any());
 		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN_FAILED);
 	}
 

@@ -1,11 +1,12 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
-import com.github.bogdanovmn.authservice.common.domain.AccountService;
-import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
-import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.common.domain.Account;
+import com.github.bogdanovmn.authservice.common.domain.AccountNotAvailableException;
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
+import com.github.bogdanovmn.authservice.common.domain.AccountService;
 import com.github.bogdanovmn.authservice.common.domain.Role;
 import com.github.bogdanovmn.authservice.infrastructure.audit.SecurityEventLogger;
+import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -37,7 +39,7 @@ public class JwtService {
 	public JwtResponse createTokensByAccountCredentials(String email, String password, AccountSecurityEventType successEventType) {
 		loginAttemptLimiter.ensureNotBlocked(email);
 
-		Optional<Account> candidate = accountService.getByEmail(email);
+		Optional<Account> candidate = accountService.findByEmail(email);
 		if (candidate.isEmpty()) {
 			securityEventLogger.logUnknownAttempt(email);
 			loginAttemptLimiter.onFailure(email);
@@ -50,6 +52,7 @@ public class JwtService {
 			throw new NoSuchElementException("Can't find a user with the email and password");
 		}
 		loginAttemptLimiter.onSuccess(email);
+		ensureAccountIsAvailable(account);
 		securityEventLogger.log(account.getId(), successEventType);
 		return responseWithTokens(account);
 	}
@@ -65,31 +68,53 @@ public class JwtService {
 				"Unknown refresh token: %s".formatted(token.getId())
 			);
 		}
-		Account account = currentToken.get().getAccount();
+		RefreshToken storedToken = currentToken.get();
+		if (storedToken.getExpiresAt().before(new Date())) {
+			refreshTokenRepository.delete(storedToken);
+			refreshTokenRepository.flush();
+			throw new IllegalArgumentException(
+				"Expired refresh token: %s".formatted(token.getId())
+			);
+		}
+
+		Account account = storedToken.getAccount();
+		ensureAccountIsAvailable(account);
 		securityEventLogger.log(account.getId(), AccountSecurityEventType.REFRESH);
 		return responseWithTokens(account);
 	}
 
 	@Transactional
-	public JwtResponse createTokensByAccountName(String accountName) {
-		Account account = accountService.getByName(accountName);
+	public JwtResponse createTokensByAccountEmail(String email) {
+		Account account = accountService.getByEmail(email);
+		ensureAccountIsAvailable(account);
 		securityEventLogger.log(account.getId(), AccountSecurityEventType.SSO);
 		return responseWithTokens(account);
 	}
 
 	@Transactional
-	public void logout(String userName) {
-		Account account = accountService.getByName(userName);
+	public void logout(String email) {
+		Account account = accountService.getByEmail(email);
 		deleteRefreshToken(account);
 		securityEventLogger.log(account.getId(), AccountSecurityEventType.LOGOUT);
 	}
 
 	@Transactional
-	public void deleteRefreshToken(String userName) {
-		deleteRefreshToken(accountService.getByName(userName));
+	public void deleteRefreshToken(Account account) {
+		deleteRefreshTokenOf(account);
 	}
 
-	private void deleteRefreshToken(Account account) {
+	/**
+	 * A deactivated account must not be able to obtain a new pair of tokens.
+	 * Every token issuing path goes through this check.
+	 */
+	public void ensureAccountIsAvailable(Account account) {
+		if (!account.getStatus().isAvailable()) {
+			securityEventLogger.log(account.getId(), AccountSecurityEventType.LOGIN_FAILED);
+			throw new AccountNotAvailableException(account);
+		}
+	}
+
+	private void deleteRefreshTokenOf(Account account) {
 		log.info("Refresh JWT token deleting for {}", account);
 		Optional<RefreshToken> previousRefreshToken = refreshTokenRepository.getByAccount(account);
 		previousRefreshToken.ifPresent(
@@ -102,6 +127,7 @@ public class JwtService {
 	}
 
 	private JwtResponse responseWithTokens(Account account) {
+		ensureAccountIsAvailable(account);
 		return JwtResponse.builder()
 			.token(
 				createToken(account)
@@ -125,7 +151,7 @@ public class JwtService {
 
 	private String createRefreshToken(Account account) {
 		log.info("Creating refresh JWT token for {}", account);
-		deleteRefreshToken(account);
+		deleteRefreshTokenOf(account);
 		RefreshToken refreshToken = refreshTokenRepository.save(
 			new RefreshToken()
 				.setAccount(account)

@@ -3,6 +3,7 @@ package com.github.bogdanovmn.authservice.common;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -31,11 +32,24 @@ public class FileResource {
 	}
 
 	private byte[] internalFileContent() throws IOException {
+		String path = fileName.replaceFirst(CLASSPATH_PREFIX, "");
+
+		// ClassLoader.getSystemResourceAsStream() doesn't see resources packaged
+		// into an executable Spring Boot jar (they live in BOOT-INF/classes), so
+		// the class's own classloader is used, with a context classloader fallback
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+		if (classLoader == null) {
+			classLoader = FileResource.class.getClassLoader();
+		}
+
 		try (
-			InputStream file = ClassLoader.getSystemResourceAsStream(
-				fileName.replaceFirst(CLASSPATH_PREFIX, "")
-			)
+			InputStream file = classLoader.getResourceAsStream(path)
 		) {
+			if (file == null) {
+				throw new FileNotFoundException(
+					"Resource '%s' has not been found in the classpath".formatted(path)
+				);
+			}
 			return file.readAllBytes();
 		}
 	}

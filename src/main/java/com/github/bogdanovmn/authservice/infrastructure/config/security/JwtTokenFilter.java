@@ -1,5 +1,6 @@
 package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
+import com.github.bogdanovmn.authservice.common.domain.Account;
 import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -64,13 +65,43 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		if (!isTokenActual(parsedToken.getBody())) {
+		Claims claims = parsedToken.getBody();
+
+		Optional<Account> account = accountByClaims(claims);
+		if (account.isEmpty()) {
+			log.warn("JWT token doesn't belong to an existing account, the request has been rejected");
+			chain.doFilter(request, response);
+			return;
+		}
+
+		if (!isTokenActual(claims, account.get())) {
 			log.warn("JWT token is stale, the password has been changed after the token was issued");
 			chain.doFilter(request, response);
 			return;
 		}
 
-		UserDetails userDetails = jwtBasedUserDetailsFactory.fromJwtClaims(parsedToken.getBody());
+		if (!account.get().getStatus().isAvailable()) {
+			log.warn(
+				"JWT token belongs to the account '{}' with status {}, the request has been rejected",
+				account.get().getEmail(), account.get().getStatus()
+			);
+			chain.doFilter(request, response);
+			return;
+		}
+
+		UserDetails userDetails;
+		try {
+			userDetails = jwtBasedUserDetailsFactory.fromJwtClaims(claims, account.get());
+		} catch (Exception ex) {
+			// Fail closed: a token we can't turn into a principal is not an authentication
+			log.warn(
+				"JWT token claims are not usable for authentication: {}, token fingerprint: {}",
+				ex.getMessage(), fingerprint(token.get())
+			);
+			chain.doFilter(request, response);
+			return;
+		}
+
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 			userDetails,
 			null,
@@ -85,22 +116,26 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		chain.doFilter(request, response);
 	}
 
-	private boolean isTokenActual(Claims claims) {
+	private Optional<Account> accountByClaims(Claims claims) {
 		String userId = claims.get("userId", String.class);
 		if (userId == null) {
-			// A token without a user id can't be linked to a password change
-			return true;
+			return Optional.empty();
 		}
+		try {
+			return accountRepository.findById(UUID.fromString(userId));
+		} catch (IllegalArgumentException ex) {
+			log.warn("JWT token has a malformed 'userId' claim");
+			return Optional.empty();
+		}
+	}
+
+	private static boolean isTokenActual(Claims claims, Account account) {
 		Date issuedAt = claims.getIssuedAt();
 		if (issuedAt == null) {
 			return true;
 		}
-		return accountRepository.findById(UUID.fromString(userId))
-			.map(
-				account -> account.getPasswordChangedAt() == null
-					|| issuedAt.getTime() >= account.getPasswordChangedAt().getTime()
-			)
-			.orElse(false);
+		return account.getPasswordChangedAt() == null
+			|| issuedAt.getTime() >= account.getPasswordChangedAt().getTime();
 	}
 
 	private static String fingerprint(String token) {

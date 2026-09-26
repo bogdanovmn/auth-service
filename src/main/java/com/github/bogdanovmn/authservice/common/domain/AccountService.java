@@ -12,14 +12,17 @@ public
 class AccountService {
 	private final AccountRepository accountRepository;
 
-	public Account getByName(String name) {
-		return accountRepository.findByName(name).orElseThrow(
-			() -> new NoSuchElementException("User with name '%s' has not been found".formatted(name))
+	/**
+	 * Email is the only unique account identifier, so it is used as the principal
+	 * name. {@code Account.name} is a display name and must not be looked up.
+	 */
+	public Account getByEmail(String email) {
+		return accountRepository.findByEmail(email).orElseThrow(
+			() -> new NoSuchElementException("User with email '%s' has not been found".formatted(email))
 		);
 	}
 
-	public Optional<Account> getByEmail(String email) {
+	public Optional<Account> findByEmail(String email) {
 		return accountRepository.findByEmail(email);
 	}
-
 }

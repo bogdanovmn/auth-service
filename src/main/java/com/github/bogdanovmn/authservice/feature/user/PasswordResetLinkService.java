@@ -65,6 +65,6 @@ class PasswordResetLinkService {
 		passwordResetTokenRepository.flush();
 
 		securityEventLogger.log(account.getId(), AccountSecurityEventType.PASSWORD_CHANGED);
-		jwtService.deleteRefreshToken(account.getName());
+		jwtService.deleteRefreshToken(account);
 	}
 }

@@ -28,7 +28,18 @@ import java.util.UUID;
 @ToString(onlyExplicitlyIncluded = true)
 public class Account {
 
-	public enum Status { CREATED, ACTIVE, INACTIVE }
+	public enum Status {
+		CREATED, ACTIVE, INACTIVE;
+
+		/**
+		 * Only INACTIVE accounts are blocked. CREATED is the default state of a
+		 * freshly registered account and has to keep working until an admin
+		 * explicitly deactivates it.
+		 */
+		public boolean isAvailable() {
+			return this != INACTIVE;
+		}
+	}
 
 	@Id
 	@GeneratedValue(generator = "UUID")

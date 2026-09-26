@@ -2,6 +2,7 @@ package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
 import com.github.bogdanovmn.authservice.common.domain.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -19,10 +20,12 @@ import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableConfigurationProperties(CorsProperties.class)
 @RequiredArgsConstructor
 public class WebSecurity extends WebSecurityConfigurerAdapter {
 
 	private final JwtTokenFilter jwtTokenFilter;
+	private final CorsProperties corsProperties;
 
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -57,6 +60,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.GET,    "/users/*/activity").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/login-attempts").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.POST,   "/users/*/password-reset").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.PUT,    "/users/*/status").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.PUT,    "/password-reset").anonymous()
 			.antMatchers("/actuator/prometheus").permitAll()
 			.anyRequest().authenticated();
@@ -77,9 +81,15 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 		UrlBasedCorsConfigurationSource source =
 			new UrlBasedCorsConfigurationSource();
 		CorsConfiguration config = new CorsConfiguration();
-		config.addAllowedOrigin("*");
-		config.addAllowedHeader("*");
-		config.addAllowedMethod("*");
+		// Explicit list of frontends: "*" together with credentials is rejected by
+		// browsers anyway, and would allow any page to call the API on behalf of a user
+		config.setAllowedOrigins(corsProperties.getAllowedOrigins());
+		config.setAllowedOriginPatterns(corsProperties.getAllowedOriginPatterns());
+		config.setAllowedMethods(corsProperties.getAllowedMethods());
+		config.setAllowedHeaders(corsProperties.getAllowedHeaders());
+		config.setExposedHeaders(corsProperties.getExposedHeaders());
+		config.setAllowCredentials(corsProperties.isAllowCredentials());
+		config.setMaxAge(corsProperties.getMaxAge());
 		source.registerCorsConfiguration("/**", config);
 		return new CorsFilter(source);
 	}

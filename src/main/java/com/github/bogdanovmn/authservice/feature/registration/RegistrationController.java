@@ -20,7 +20,7 @@ class RegistrationController {
 
 	@PostMapping("/accounts")
 	public ResponseEntity<?> registration(@RequestBody @Valid RegistrationRequest request) throws AlreadyExistsException {
-		Optional<Account> existedUser = accountService.getByEmail(request.getEmail());
+		Optional<Account> existedUser = accountService.findByEmail(request.getEmail());
 		if (existedUser.isPresent()) {
 			throw new AlreadyExistsException(existedUser.get().getEmail());
 		}
