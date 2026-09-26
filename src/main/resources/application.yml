@@ -9,6 +9,14 @@ management:
 
 security.roles.application-id-prefix: auth
 
+security.login-attempt:
+  enabled: true
+  max-failures: 7
+  window-in-seconds: 900
+  base-lock-in-seconds: 60
+  max-lock-in-seconds: 3600
+  max-tracked-emails: 1000
+
 jwt:
   reset-password:
     ttl-in-hours: 1

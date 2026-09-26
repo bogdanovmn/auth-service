@@ -2,21 +2,23 @@ package com.github.bogdanovmn.authservice.feature.token;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.TimeUnit;
 
 @Configuration
+@EnableConfigurationProperties(TemporaryCodeProperties.class)
+@RequiredArgsConstructor
 class CacheConfig {
-	@Value("${cache.temporary-code.ttl-in-sec:10}")
-	private int codeTtlInSec;
+	private final TemporaryCodeProperties properties;
 
 	@Bean
 	Cache<String, JwtResponse> temporaryCodeCache() {
 		return Caffeine.newBuilder()
-			.expireAfterWrite(codeTtlInSec, TimeUnit.SECONDS)
+			.expireAfterWrite(properties.getTtlInSec(), TimeUnit.SECONDS)
 			.maximumSize(100)
 		.build();
 	}

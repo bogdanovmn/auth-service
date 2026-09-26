@@ -3,7 +3,7 @@ package com.github.bogdanovmn.authservice.infrastructure.config.security;
 import com.github.bogdanovmn.authservice.common.domain.Application;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,18 +12,18 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
+@EnableConfigurationProperties(SecurityRolesProperties.class)
 @RequiredArgsConstructor
 public class JwtBasedUserDetailsFactory {
 
-    @Value("${security.roles.application-id-prefix}")
-    private final String roleApplicationPrefix;
+    private final SecurityRolesProperties properties;
 
     public UserDetails fromJwtClaims(Claims claims) {
         List<? extends GrantedAuthority> roles = ((List<String>) claims.get("roles")).stream()
             .map(
                 r -> r.replaceFirst(
                     "^(%s|%s):".formatted(
-                        Application.ANY_APPLICATION, roleApplicationPrefix
+                        Application.ANY_APPLICATION, properties.getApplicationIdPrefix()
                     ),
                     ""
                 )

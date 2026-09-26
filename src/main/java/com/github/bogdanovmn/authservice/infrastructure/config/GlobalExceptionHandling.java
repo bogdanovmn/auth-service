@@ -1,9 +1,11 @@
 package com.github.bogdanovmn.authservice.infrastructure.config;
 
 import com.github.bogdanovmn.authservice.common.domain.AlreadyExistsException;
+import com.github.bogdanovmn.authservice.common.domain.TooManyAttemptsException;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
@@ -13,10 +15,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @ControllerAdvice
 @Slf4j
@@ -57,6 +57,22 @@ public class GlobalExceptionHandling {
 		return exceptionResponse(req, ex, HttpStatus.BAD_REQUEST.value());
 	}
 
+	@ExceptionHandler(value = TooManyAttemptsException.class)
+	public ResponseEntity<ExceptionResponse> tooManyAttempts(HttpServletRequest req, TooManyAttemptsException ex) {
+		log.warn(
+			"HTTP Response: {} for [{} {}] processing error: {}",
+			HttpStatus.TOO_MANY_REQUESTS.value(), req.getMethod(), req.getRequestURI(), ex.getMessage()
+		);
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS.value())
+			.header(HttpHeaders.RETRY_AFTER, String.valueOf(ex.getRetryAfterSeconds()))
+			.body(
+				ExceptionResponse.builder()
+					.message(ex.getMessage())
+					.code(HttpStatus.TOO_MANY_REQUESTS.value())
+					.build()
+			);
+	}
+
 	private ResponseEntity<ExceptionResponse> exceptionResponse(HttpServletRequest req, Throwable ex, int statusCode) {
 		boolean isServerError = statusCode >= 500;
 		if (isServerError) {
@@ -72,18 +88,9 @@ public class GlobalExceptionHandling {
 		}
 		return ResponseEntity.status(statusCode).body(
 			ExceptionResponse.builder()
-				.message(ex.getMessage())
+				.message(isServerError ? "Internal server error" : ex.getMessage())
 				.code(statusCode)
-				.exception(ex.getClass().getName())
-				.stacktrace(
-					isServerError
-						? Arrays.stream(
-							ex.getStackTrace()
-						).map(StackTraceElement::toString)
-							.limit(10)
-							.collect(Collectors.toList())
-						: null
-				)
+				.exception(isServerError ? null : ex.getClass().getName())
 				.build()
 		);
 	}

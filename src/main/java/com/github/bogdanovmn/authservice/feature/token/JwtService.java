@@ -31,19 +31,25 @@ public class JwtService {
 	private final JwtFactory jwtFactory;
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final SecurityEventLogger securityEventLogger;
+	private final LoginAttemptLimiter loginAttemptLimiter;
 
 	@Transactional
 	public JwtResponse createTokensByAccountCredentials(String email, String password, AccountSecurityEventType successEventType) {
+		loginAttemptLimiter.ensureNotBlocked(email);
+
 		Optional<Account> candidate = accountService.getByEmail(email);
 		if (candidate.isEmpty()) {
 			securityEventLogger.logUnknownAttempt(email);
+			loginAttemptLimiter.onFailure(email);
 			throw new NoSuchElementException("Can't find a user with the email and password");
 		}
 		Account account = candidate.get();
 		if (!PASSWORD_ENCODER.matches(password, account.getEncodedPassword())) {
 			securityEventLogger.log(account.getId(), AccountSecurityEventType.LOGIN_FAILED);
+			loginAttemptLimiter.onFailure(email);
 			throw new NoSuchElementException("Can't find a user with the email and password");
 		}
+		loginAttemptLimiter.onSuccess(email);
 		securityEventLogger.log(account.getId(), successEventType);
 		return responseWithTokens(account);
 	}

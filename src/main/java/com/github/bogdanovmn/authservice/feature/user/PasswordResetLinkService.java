@@ -6,7 +6,7 @@ import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import com.github.bogdanovmn.authservice.feature.token.JwtService;
 import com.github.bogdanovmn.authservice.infrastructure.audit.SecurityEventLogger;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,15 +16,14 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
+@EnableConfigurationProperties(PasswordResetProperties.class)
 @RequiredArgsConstructor
 class PasswordResetLinkService {
 	private final PasswordResetTokenRepository passwordResetTokenRepository;
 	private final AccountRepository accountRepository;
 	private final JwtService jwtService;
 	private final SecurityEventLogger securityEventLogger;
-
-	@Value("${jwt.reset-password.ttl-in-hours:1}")
-	private final long resetTokenTtlInHours;
+	private final PasswordResetProperties properties;
 
 	@Transactional
 	public PasswordResetToken create(Account account) {
@@ -35,13 +34,13 @@ class PasswordResetLinkService {
 			new PasswordResetToken()
 				.setAccount(account)
 				.setExpiresAt(
-					new Date(System.currentTimeMillis() + resetTokenTtlInHours * 3600_000)
+					new Date(System.currentTimeMillis() + properties.getTtlInHours() * 3600_000)
 				)
 		);
 	}
 
 	long ttlInMinutes() {
-		return resetTokenTtlInHours * 60;
+		return properties.getTtlInHours() * 60;
 	}
 
 	@Transactional

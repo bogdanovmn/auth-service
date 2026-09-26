@@ -2,6 +2,7 @@ package com.github.bogdanovmn.authservice.infrastructure.config.security;
 
 import com.github.bogdanovmn.authservice.common.domain.AccountRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,8 +51,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 		Jws<Claims> parsedToken;
 		try {
 			parsedToken = jwtFactory.checkSignatureAndReturnClaims(token.get());
+		} catch (ExpiredJwtException ex) {
+			log.debug("JWT token has expired: {}", ex.getMessage());
+			chain.doFilter(request, response);
+			return;
 		} catch (Exception ex) {
-			log.warn("JWT token parsing error: {}, token: {}", ex.getMessage(), token);
+			log.warn(
+				"JWT token parsing error: {}, token fingerprint: {}",
+				ex.getMessage(), fingerprint(token.get())
+			);
 			chain.doFilter(request, response);
 			return;
 		}
@@ -89,6 +101,17 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 					|| issuedAt.getTime() >= account.getPasswordChangedAt().getTime()
 			)
 			.orElse(false);
+	}
+
+	private static String fingerprint(String token) {
+		try {
+			byte[] digest = MessageDigest.getInstance("SHA-256").digest(
+				token.getBytes(StandardCharsets.UTF_8)
+			);
+			return HexFormat.of().formatHex(digest, 0, 6);
+		} catch (NoSuchAlgorithmException ex) {
+			return "unknown";
+		}
 	}
 
 }

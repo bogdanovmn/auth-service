@@ -2,6 +2,7 @@ package com.github.bogdanovmn.authservice.feature.token;
 
 import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import com.github.bogdanovmn.authservice.common.domain.AccountService;
+import com.github.bogdanovmn.authservice.common.domain.TooManyAttemptsException;
 import com.github.bogdanovmn.authservice.infrastructure.config.security.JwtFactory;
 import com.github.bogdanovmn.authservice.common.domain.Account;
 import com.github.bogdanovmn.authservice.infrastructure.audit.SecurityEventLogger;
@@ -23,10 +24,13 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ContextConfiguration(
@@ -47,6 +51,9 @@ class JwtControllerTest extends AbstractControllerTest {
 
 	@MockBean
 	private SecurityEventLogger securityEventLogger;
+
+	@MockBean
+	private LoginAttemptLimiter loginAttemptLimiter;
 
 	@Test
 	void exchangeIsOk() throws Exception {
@@ -183,6 +190,31 @@ class JwtControllerTest extends AbstractControllerTest {
 		).andExpect(status().isNotFound());
 
 		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN_FAILED);
+	}
+
+	@Test
+	void tooManyAttemptsAreRejected() throws Exception {
+		final String email = "joe@mail.ru";
+		doThrow(new TooManyAttemptsException(120))
+			.when(loginAttemptLimiter).ensureNotBlocked(email);
+
+		this.mockMvc.perform(
+			post("/jwt")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(
+					jsonMapper.writeValueAsString(
+						ExchangeCredentialsToJwtRequest.builder()
+							.email(email)
+							.password("secret")
+						.build()
+					)
+				)
+		)
+			.andExpect(status().isTooManyRequests())
+			.andExpect(header().string("Retry-After", "120"))
+			.andExpect(jsonPath("$.code").value(429))
+			.andExpect(jsonPath("$.message").value("Too many failed attempts. Try again in 2 minutes."))
+			.andExpect(jsonPath("$.exception").doesNotExist());
 	}
 
 	@Test

@@ -8,7 +8,7 @@ import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -20,48 +20,39 @@ import java.util.Map;
 import java.util.UUID;
 
 @Component
+@EnableConfigurationProperties(JwtProperties.class)
 @RequiredArgsConstructor
 @Slf4j
 public class JwtFactory {
+	private final JwtProperties properties;
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
 
-	@Value("${jwt.private-key-path:}")
-	private final String privateKeyPath;
-
-	@Value("${jwt.public-key-path:}")
-	private final String publicKeyPath;
-
-	@Value("${jwt.ttl-in-minutes:30}")
-	private final long tokenTtlInMinutes;
-
-	@Value("${jwt.refresh-token.ttl-in-hours:720}")
-	private final long refreshTokenTtlInHours;
-
 	@PostConstruct
 	public void loadKeys() throws IOException {
-		log.info("JWT private key loading: {}", privateKeyPath);
+		log.info("JWT private key loading: {}", properties.getPrivateKeyPath());
 		privateKey = RSAKey.ofDER(
-			new FileResource(privateKeyPath).content()
+			new FileResource(properties.getPrivateKeyPath()).content()
 		).asPrivateKey();
 
-		log.info("JWT public key loading: {}", publicKeyPath);
+		log.info("JWT public key loading: {}", properties.getPublicKeyPath());
 		publicKey = RSAKey.ofDER(
-			new FileResource(publicKeyPath).content()
+			new FileResource(properties.getPublicKeyPath()).content()
 		).asPublicKey();
 	}
 
 	public String createToken(Map<String, Object> claims) {
-		Date expiresAt = new Date(System.currentTimeMillis() + tokenTtlInMinutes * 60_000L);
+		Date expiresAt = new Date(System.currentTimeMillis() + properties.getTtlInMinutes() * 60_000L);
+		String tokenId = UUID.randomUUID().toString();
 
 		JwtBuilder token = Jwts.builder()
 			.setClaims(claims)
 			.signWith(privateKey)
 			.setIssuedAt(new Date())
 			.setExpiration(expiresAt)
-			.setId(UUID.randomUUID().toString());
+			.setId(tokenId);
 
-		log.info("JWS token has been created: claims={}, expires={}", claims, expiresAt);
+		log.info("JWS token has been created: id={}, expires={}", tokenId, expiresAt);
 
 		return token.compact();
 	}
@@ -75,7 +66,7 @@ public class JwtFactory {
 			.setExpiration(expiresAt)
 			.setId(tokenId.toString());
 
-		log.info("JWS refresh token has been created: id={}, claims={}, expires={}", tokenId, claims, expiresAt);
+		log.info("JWS refresh token has been created: id={}, expires={}", tokenId, expiresAt);
 
 		return token.compact();
 	}
@@ -88,6 +79,9 @@ public class JwtFactory {
 	}
 
 	public Date refreshTokenExpiresAt() {
-		return new Date(System.currentTimeMillis() + refreshTokenTtlInHours * 3600_000);
+		return new Date(
+			System.currentTimeMillis()
+				+ properties.getRefreshToken().getTtlInHours() * 3600_000
+		);
 	}
 }
