@@ -7,5 +7,6 @@ public enum AccountSecurityEventType {
 	REFRESH,
 	PASSWORD_CHANGED,
 	LOGIN_FAILED,
-	STATUS_CHANGED
+	STATUS_CHANGED,
+	OAUTH_LOGIN
 }

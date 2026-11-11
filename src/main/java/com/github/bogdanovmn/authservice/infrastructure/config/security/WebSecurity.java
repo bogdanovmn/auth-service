@@ -51,6 +51,8 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.POST,   "/sso/code").anonymous()
 			.antMatchers(HttpMethod.GET,    "/sso/jwt").anonymous()
 			.antMatchers(HttpMethod.PUT,    "/sso/jwt").authenticated()
+			.antMatchers(HttpMethod.GET,    "/oauth2/authorization/*").permitAll()
+			.antMatchers(HttpMethod.GET,    "/oauth2/callback/*").permitAll()
 			.antMatchers(HttpMethod.GET,    "/applications").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/applications/public").authenticated()
 			.antMatchers(HttpMethod.POST,   "/applications").hasRole(Role.Name.admin.name())

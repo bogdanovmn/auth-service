@@ -12,7 +12,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-class SsoService {
+public class SsoService {
 	private final JwtService jwtService;
 	private final Cache<String, JwtResponse> temporaryCodeCache;
 
@@ -34,8 +34,12 @@ class SsoService {
 	}
 
 	public String temporaryCodeByAccount(String email) {
+		return temporaryCodeByAccount(email, AccountSecurityEventType.SSO);
+	}
+
+	public String temporaryCodeByAccount(String email, AccountSecurityEventType eventType) {
 		return cachedCode(
-			jwtService.createTokensByAccountEmail(email)
+			jwtService.createTokensByAccountEmail(email, eventType)
 		);
 	}
 

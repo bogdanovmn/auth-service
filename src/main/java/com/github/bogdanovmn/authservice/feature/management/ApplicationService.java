@@ -59,9 +59,10 @@ class ApplicationService {
 					.filter(s -> s.getRoleName() != null)
 					.forEach(
 						s -> result.role(
-							new ApplicationStatistic.Role(
-								s.getRoleName(), s.getUsersCount()
-							)
+							ApplicationStatistic.Role.builder()
+								.name(s.getRoleName())
+								.usersCount(s.getUsersCount())
+								.build()
 						)
 					);
 				return result.build();

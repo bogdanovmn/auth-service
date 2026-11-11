@@ -85,9 +85,14 @@ public class JwtService {
 
 	@Transactional
 	public JwtResponse createTokensByAccountEmail(String email) {
+		return createTokensByAccountEmail(email, AccountSecurityEventType.SSO);
+	}
+
+	@Transactional
+	public JwtResponse createTokensByAccountEmail(String email, AccountSecurityEventType eventType) {
 		Account account = accountService.getByEmail(email);
 		ensureAccountIsAvailable(account);
-		securityEventLogger.log(account.getId(), AccountSecurityEventType.SSO);
+		securityEventLogger.log(account.getId(), eventType);
 		return responseWithTokens(account);
 	}
 
