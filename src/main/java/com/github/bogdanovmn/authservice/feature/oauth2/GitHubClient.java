@@ -16,7 +16,6 @@ class GitHubClient extends AbstractOAuth2Client {
 	private static final String TOKEN_URL = "https://github.com/login/oauth/access_token";
 	private static final String USER_INFO_URL = "https://api.github.com/user";
 	private static final String EMAILS_URL = "https://api.github.com/user/emails";
-	private static final String DEFAULT_SCOPE = "read:user user:email";
 
 	GitHubClient(ObjectMapper objectMapper, HttpClient httpClient) {
 		super(objectMapper, httpClient);
@@ -38,7 +37,7 @@ class GitHubClient extends AbstractOAuth2Client {
 		params.put("client_id", request.getConfig().getClientId());
 		params.put("redirect_uri", request.getRedirectUri());
 		params.put("response_type", "code");
-		params.put("scope", scope(request));
+		params.put("scope", request.getConfig().getScope());
 		params.put("state", request.getState());
 		if (request.getCodeChallenge() != null) {
 			params.put("code_challenge", request.getCodeChallenge());
@@ -116,11 +115,6 @@ class GitHubClient extends AbstractOAuth2Client {
 			}
 		}
 		return firstVerified;
-	}
-
-	private String scope(OAuth2AuthorizationRequest request) {
-		String configured = blankToNull(request.getConfig().getScope());
-		return configured != null ? configured : DEFAULT_SCOPE;
 	}
 
 	private String url(String configured, String fallback) {

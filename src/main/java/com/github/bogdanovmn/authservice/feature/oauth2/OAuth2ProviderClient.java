@@ -1,6 +1,6 @@
 package com.github.bogdanovmn.authservice.feature.oauth2;
 
-public interface OAuth2ProviderClient {
+interface OAuth2ProviderClient {
 
 	String getName();
 

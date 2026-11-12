@@ -21,7 +21,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "account_oauth_identity")
 @ToString(onlyExplicitlyIncluded = true)
-public class AccountOAuthIdentity {
+class AccountOAuthIdentity {
 
 	@Id
 	@GeneratedValue(generator = "UUID")

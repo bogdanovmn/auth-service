@@ -8,5 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ConfigurationProperties(prefix = "cache.temporary-code")
 class TemporaryCodeProperties {
-	private int ttlInSec = 10;
+	private int ttlInSec;
 }

@@ -19,11 +19,12 @@ class OAuth2ProviderClientTest {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Test
-	void githubAuthorizationUrlContainsPkceAndDefaultScope() {
+	void githubAuthorizationUrlContainsPkceAndScope() {
 		GitHubClient client = new GitHubClient(objectMapper, null);
 		OAuth2Properties.Provider config = new OAuth2Properties.Provider()
 			.setClientId("client-id")
-			.setClientSecret("secret");
+			.setClientSecret("secret")
+			.setScope("read:user user:email");
 
 		String url = client.buildAuthorizationUrl(request("github", config));
 
@@ -46,7 +47,8 @@ class OAuth2ProviderClientTest {
 		VkClient client = new VkClient(objectMapper, null);
 		OAuth2Properties.Provider config = new OAuth2Properties.Provider()
 			.setClientId("vk-client")
-			.setMode(VkClient.MODE_ID);
+			.setMode(VkClient.MODE_ID)
+			.setScope("email");
 
 		assertTrue(client.supportsPkce(config));
 
@@ -66,7 +68,9 @@ class OAuth2ProviderClientTest {
 		VkClient client = new VkClient(objectMapper, null);
 		OAuth2Properties.Provider config = new OAuth2Properties.Provider()
 			.setClientId("vk-client")
-			.setMode(VkClient.MODE_LEGACY);
+			.setMode(VkClient.MODE_LEGACY)
+			.setScope("email")
+			.setApiVersion("5.245");
 
 		assertFalse(client.supportsPkce(config));
 
@@ -74,7 +78,7 @@ class OAuth2ProviderClientTest {
 
 		assertTrue(url.startsWith("https://oauth.vk.com/authorize?"));
 		Map<String, String> params = query(url);
-		assertEquals("5.199", params.get("v"));
+		assertEquals("5.245", params.get("v"));
 		assertNull(params.get("code_challenge"));
 		assertNull(params.get("code_challenge_method"));
 	}

@@ -4,30 +4,26 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "auth.oauth2")
-public class OAuth2Properties {
+class OAuth2Properties {
 
-	private String redirectBaseUrl = "http://localhost:8091";
-
-	private String frontendUrl = "http://localhost:5173/sso/";
-
-	private long stateTtlInSeconds = 600;
-
-	private Map<String, Provider> providers = new LinkedHashMap<>();
+	private String redirectBaseUrl;
+	private String frontendUrl;
+	private long stateTtlInSeconds;
+	private Map<String, Provider> providers;
 
 	@Getter
 	@Setter
-	public static class Provider {
-		private String clientId = "";
-		private String clientSecret = "";
-		private String scope = "";
-		private String mode = "id";
-		private String apiVersion = "5.199";
+	static class Provider {
+		private String clientId;
+		private String clientSecret;
+		private String scope;
+		private String mode;
+		private String apiVersion;
 		private String authorizeUrl;
 		private String tokenUrl;
 		private String userInfoUrl;

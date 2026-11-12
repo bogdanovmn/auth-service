@@ -23,8 +23,6 @@ class VkClient extends AbstractOAuth2Client {
 	private static final String LEGACY_TOKEN_URL = "https://oauth.vk.com/access_token";
 	private static final String LEGACY_USER_INFO_URL = "https://api.vk.com/method/users.get";
 
-	private static final String DEFAULT_SCOPE = "email";
-
 	VkClient(ObjectMapper objectMapper, HttpClient httpClient) {
 		super(objectMapper, httpClient);
 	}
@@ -47,10 +45,10 @@ class VkClient extends AbstractOAuth2Client {
 		params.put("client_id", request.getConfig().getClientId());
 		params.put("redirect_uri", request.getRedirectUri());
 		params.put("response_type", "code");
-		params.put("scope", scope(request.getConfig()));
+		params.put("scope", request.getConfig().getScope());
 		params.put("state", request.getState());
 		if (legacy) {
-			params.put("v", apiVersion(request.getConfig()));
+			params.put("v", request.getConfig().getApiVersion());
 		} else if (request.getCodeChallenge() != null) {
 			params.put("code_challenge", request.getCodeChallenge());
 			params.put("code_challenge_method", "S256");
@@ -106,7 +104,7 @@ class VkClient extends AbstractOAuth2Client {
 		params.put("client_secret", request.getConfig().getClientSecret());
 		params.put("redirect_uri", request.getRedirectUri());
 		params.put("code", code);
-		params.put("v", apiVersion(request.getConfig()));
+		params.put("v", request.getConfig().getApiVersion());
 
 		JsonNode response = postForm(
 			url(request.getConfig().getTokenUrl(), LEGACY_TOKEN_URL),
@@ -148,7 +146,7 @@ class VkClient extends AbstractOAuth2Client {
 	private OAuth2UserInfo fetchLegacyUserInfo(OAuth2AuthorizationRequest request, String accessToken) {
 		Map<String, String> params = new LinkedHashMap<>();
 		params.put("access_token", accessToken);
-		params.put("v", apiVersion(request.getConfig()));
+		params.put("v", request.getConfig().getApiVersion());
 
 		// The legacy API takes the token as a query parameter.
 		JsonNode response = getJson(
@@ -167,16 +165,6 @@ class VkClient extends AbstractOAuth2Client {
 
 	private boolean isLegacy(OAuth2Properties.Provider config) {
 		return config != null && MODE_LEGACY.equalsIgnoreCase(config.getMode());
-	}
-
-	private String scope(OAuth2Properties.Provider config) {
-		String configured = blankToNull(config.getScope());
-		return configured != null ? configured : DEFAULT_SCOPE;
-	}
-
-	private String apiVersion(OAuth2Properties.Provider config) {
-		String configured = blankToNull(config.getApiVersion());
-		return configured != null ? configured : "5.199";
 	}
 
 	private String url(String configured, String fallback) {

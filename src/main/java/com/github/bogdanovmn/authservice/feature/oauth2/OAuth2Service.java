@@ -30,7 +30,7 @@ class OAuth2Service {
 	private final AccountService accountService;
 	private final JwtService jwtService;
 
-	public String authorizationUrl(String provider, String from) {
+	String authorizationUrl(String provider, String from) {
 		OAuth2ProviderClient client = client(provider);
 		OAuth2Properties.Provider config = config(provider);
 		if (config.getClientId() == null || config.getClientId().isBlank()) {
@@ -65,12 +65,12 @@ class OAuth2Service {
 		);
 	}
 
-	public OAuth2LoginResult login(String provider,
-								   String code,
-								   String state,
-								   String deviceId,
-								   String error,
-								   String errorDescription)
+	OAuth2LoginResult login(String provider,
+							String code,
+							String state,
+							String deviceId,
+							String error,
+							String errorDescription)
 	{
 		if (error != null && !error.isBlank()) {
 			throw new OAuth2LoginException(
@@ -165,7 +165,8 @@ class OAuth2Service {
 	}
 
 	private OAuth2Properties.Provider config(String provider) {
-		return Optional.ofNullable(properties.getProviders().get(provider))
+		return Optional.ofNullable(properties.getProviders())
+			.map(providers -> providers.get(provider))
 			.orElseThrow(
 				() -> new OAuth2LoginException(
 					OAuth2LoginException.UNKNOWN_PROVIDER,

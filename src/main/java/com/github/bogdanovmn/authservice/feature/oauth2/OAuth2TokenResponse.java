@@ -5,7 +5,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class OAuth2TokenResponse {
+class OAuth2TokenResponse {
 	String accessToken;
 	String userId;
 	String email;

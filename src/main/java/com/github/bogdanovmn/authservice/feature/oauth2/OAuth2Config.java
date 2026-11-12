@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @EnableConfigurationProperties(OAuth2Properties.class)
-public class OAuth2Config {
+class OAuth2Config {
 
 	@Bean
 	HttpClient oAuth2HttpClient() {

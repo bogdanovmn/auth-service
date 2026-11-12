@@ -84,12 +84,12 @@ public class JwtService {
 	}
 
 	@Transactional
-	public JwtResponse createTokensByAccountEmail(String email) {
+	JwtResponse createTokensByAccountEmail(String email) {
 		return createTokensByAccountEmail(email, AccountSecurityEventType.SSO);
 	}
 
 	@Transactional
-	public JwtResponse createTokensByAccountEmail(String email, AccountSecurityEventType eventType) {
+	JwtResponse createTokensByAccountEmail(String email, AccountSecurityEventType eventType) {
 		Account account = accountService.getByEmail(email);
 		ensureAccountIsAvailable(account);
 		securityEventLogger.log(account.getId(), eventType);

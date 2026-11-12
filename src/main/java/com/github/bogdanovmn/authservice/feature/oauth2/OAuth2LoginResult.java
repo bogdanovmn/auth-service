@@ -6,7 +6,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class OAuth2LoginResult {
+class OAuth2LoginResult {
 	Account account;
 	String from;
 }

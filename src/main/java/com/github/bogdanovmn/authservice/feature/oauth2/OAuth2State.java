@@ -7,7 +7,7 @@ import java.time.Instant;
 
 @Value
 @Builder
-public class OAuth2State {
+class OAuth2State {
 	String provider;
 	String from;
 	String codeVerifier;
