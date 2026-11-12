@@ -24,6 +24,14 @@ public class AccountSecurityEventRepository {
 		.createdAt(rs.getTimestamp("created_at"))
 		.build();
 
+	private static final RowMapper<AccountSecurityEventWithAccount> EVENT_WITH_ACCOUNT_ROW_MAPPER =
+		(rs, rowNum) -> AccountSecurityEventWithAccount.builder()
+			.event(EVENT_ROW_MAPPER.mapRow(rs, rowNum))
+			.accountId(rs.getObject("account_id", UUID.class))
+			.accountName(rs.getString("account_name"))
+			.accountEmail(rs.getString("account_email"))
+			.build();
+
 	private final NamedParameterJdbcTemplate jdbc;
 
 	public List<AccountSecurityEvent> lastByAccountId(UUID accountId) {
@@ -37,6 +45,22 @@ public class AccountSecurityEventRepository {
 				""",
 			Map.of("accountId", accountId),
 			EVENT_ROW_MAPPER
+		);
+	}
+
+	public List<AccountSecurityEventWithAccount> last100WithAccount() {
+		return jdbc.query("""
+					SELECT
+						e.id, e.account_id, e.type, e.ip, e.user_agent, e.client_url, e.provider, e.created_at,
+						a.name AS account_name,
+						a.email AS account_email
+					FROM account_security_event e
+					JOIN account a ON a.id = e.account_id
+					ORDER BY e.created_at DESC, e.id DESC
+					LIMIT 100
+				""",
+			Map.of(),
+			EVENT_WITH_ACCOUNT_ROW_MAPPER
 		);
 	}
 

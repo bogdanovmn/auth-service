@@ -60,6 +60,7 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
 			.antMatchers(HttpMethod.DELETE, "/applications/*").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/users").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/users/*/activity").hasRole(Role.Name.admin.name())
+			.antMatchers(HttpMethod.GET,    "/events").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.GET,    "/login-attempts").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.POST,   "/users/*/password-reset").hasRole(Role.Name.admin.name())
 			.antMatchers(HttpMethod.PUT,    "/users/*/status").hasRole(Role.Name.admin.name())
