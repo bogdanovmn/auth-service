@@ -1,5 +1,6 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ class SsoController {
 	TemporaryCodeResponse exchangeCredentialsToCode(@RequestBody @Valid ExchangeCredentialsToJwtRequest request) {
 		return TemporaryCodeResponse.builder()
 			.code(
-				ssoService.temporaryCode(request.getEmail(), request.getPassword())
+				ssoService.temporaryCode(request.getEmail(), request.getPassword(), request.getClientUrl())
 			)
 		.build();
 	}
@@ -33,10 +34,18 @@ class SsoController {
 	}
 
 	@PutMapping("/jwt")
-	TemporaryCodeResponse exchangeJwtToCode(Principal currentUser) {
+	TemporaryCodeResponse exchangeJwtToCode(Principal currentUser,
+											@RequestParam(name = "clientUrl", required = false) String clientUrl,
+											@RequestParam(required = false) String provider)
+	{
 		return TemporaryCodeResponse.builder()
 			.code(
-				ssoService.temporaryCodeByAccount(currentUser.getName())
+				ssoService.temporaryCodeByAccount(
+					currentUser.getName(),
+					AccountSecurityEventType.SSO,
+					provider,
+					clientUrl
+				)
 			)
 		.build();
 	}

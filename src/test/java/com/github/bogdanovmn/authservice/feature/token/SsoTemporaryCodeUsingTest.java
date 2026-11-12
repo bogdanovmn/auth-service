@@ -37,7 +37,7 @@ class SsoTemporaryCodeUsingTest {
 	void temporaryCodeOneTimeUsing() {
 		String email = "email@mail.com";
 		String password = "pass";
-		when(jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO))
+		when(jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO, null))
 			.thenReturn(
 				JwtResponse.builder()
 					.refreshToken("r-token")
@@ -45,7 +45,7 @@ class SsoTemporaryCodeUsingTest {
 				.build()
 			);
 
-		String code = ssoService.temporaryCode(email, password);
+		String code = ssoService.temporaryCode(email, password, null);
 		JwtResponse tokens = ssoService.tokens(code);
 		assertEquals("token", tokens.getToken());
 		assertEquals("r-token", tokens.getRefreshToken());
@@ -60,7 +60,7 @@ class SsoTemporaryCodeUsingTest {
 	void temporaryCodeIsConsumedByASingleConcurrentRequest() throws Exception {
 		String email = "email@mail.com";
 		String password = "pass";
-		when(jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO))
+		when(jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO, null))
 			.thenReturn(
 				JwtResponse.builder()
 					.refreshToken("r-token")
@@ -68,7 +68,7 @@ class SsoTemporaryCodeUsingTest {
 				.build()
 			);
 
-		String code = ssoService.temporaryCode(email, password);
+		String code = ssoService.temporaryCode(email, password, null);
 
 		int threads = 16;
 		ExecutorService pool = Executors.newFixedThreadPool(threads);

@@ -10,6 +10,7 @@ import java.time.Instant;
 class OAuth2State {
 	String provider;
 	String from;
+	String clientUrl;
 	String codeVerifier;
 	Instant createdAt;
 }

@@ -22,13 +22,15 @@ public class AccountService {
 	private final AccountOAuthIdentityRepository accountOAuthIdentityRepository;
 	private final RoleRepository roleRepository;
 
-	/**
-	 * Email is the only unique account identifier, so it is used as the principal
-	 * name. {@code Account.name} is a display name and must not be looked up.
-	 */
 	public Account getByEmail(String email) {
 		return accountRepository.findByEmail(email).orElseThrow(
 			() -> new NoSuchElementException("User with email '%s' has not been found".formatted(email))
+		);
+	}
+
+	public Account getById(UUID id) {
+		return accountRepository.findById(id).orElseThrow(
+			() -> new NoSuchElementException("User with id '%s' has not been found".formatted(id))
 		);
 	}
 
@@ -41,23 +43,25 @@ public class AccountService {
 		Optional<AccountOAuthIdentity> existingIdentity =
 			accountOAuthIdentityRepository.findByProviderAndProviderUserId(provider, providerUserId);
 
-		Account account;
 		if (existingIdentity.isPresent()) {
-			account = existingIdentity.get().getAccount();
-			updateIdentity(existingIdentity.get(), email, name);
-		} else {
-			account = accountRepository.findByEmailIgnoreCase(email)
-				.orElseGet(() -> createAccount(email, name));
-
-			accountOAuthIdentityRepository.save(
-				new AccountOAuthIdentity()
-					.setAccount(account)
-					.setProvider(provider)
-					.setProviderUserId(providerUserId)
-					.setEmail(email)
-					.setName(name)
-			);
+			AccountOAuthIdentity identity = existingIdentity.get();
+			Account account = getById(identity.getAccountId());
+			updateIdentity(identity, email, name);
+			return account;
 		}
+
+		Account account = accountRepository.findByEmailIgnoreCase(email)
+			.orElseGet(() -> createAccount(email, name));
+
+		accountOAuthIdentityRepository.create(
+			AccountOAuthIdentity.builder()
+				.accountId(account.getId())
+				.provider(provider)
+				.providerUserId(providerUserId)
+				.email(email)
+				.name(name)
+				.build()
+		);
 		return account;
 	}
 
@@ -65,23 +69,25 @@ public class AccountService {
 		Set<Role> roles = new HashSet<>();
 		roles.add(roleRepository.getBasicUserRole());
 
-		return accountRepository.save(
-			new Account()
-				.setEmail(email)
-				.setName(name)
-				.setEncodedPassword(
+		return accountRepository.create(
+			Account.builder()
+				.email(email)
+				.name(name)
+				.encodedPassword(
 					PASSWORD_ENCODER.encode(UUID.randomUUID().toString())
 				)
-				.setRoles(roles)
+				.roles(roles)
+				.build()
 		);
 	}
 
 	private void updateIdentity(AccountOAuthIdentity identity, String email, String name) {
-		if (email != null && !email.equals(identity.getEmail())) {
-			identity.setEmail(email);
-		}
-		if (name != null && !name.equals(identity.getName())) {
-			identity.setName(name);
+		AccountOAuthIdentity updated = identity.toBuilder()
+			.email(email != null ? email : identity.getEmail())
+			.name(name != null ? name : identity.getName())
+			.build();
+		if (!updated.equals(identity)) {
+			accountOAuthIdentityRepository.update(updated);
 		}
 	}
 }

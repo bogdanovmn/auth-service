@@ -12,4 +12,5 @@ class ExchangeCredentialsToJwtRequest {
 	String email;
 	@NotEmpty
 	String password;
+	String clientUrl;
 }

@@ -14,7 +14,7 @@ class LoginAttemptService {
 
 	@Transactional(readOnly = true)
 	public List<LoginAttemptResponse> last() {
-		return failedLoginAttemptRepository.findTop100ByOrderByCreatedAtDesc().stream()
+		return failedLoginAttemptRepository.last100().stream()
 			.map(
 				attempt -> LoginAttemptResponse.builder()
 					.id(attempt.getId())

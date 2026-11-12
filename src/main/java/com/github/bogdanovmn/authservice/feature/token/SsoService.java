@@ -16,9 +16,14 @@ public class SsoService {
 	private final JwtService jwtService;
 	private final Cache<String, JwtResponse> temporaryCodeCache;
 
-	String temporaryCode(String email, String password) {
+	String temporaryCode(String email, String password, String clientUrl) {
 		return cachedCode(
-			jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO)
+			jwtService.createTokensByAccountCredentials(
+				email,
+				password,
+				AccountSecurityEventType.SSO,
+				clientUrl
+			)
 		);
 	}
 
@@ -33,13 +38,13 @@ public class SsoService {
 		return tokens;
 	}
 
-	String temporaryCodeByAccount(String email) {
-		return temporaryCodeByAccount(email, AccountSecurityEventType.SSO);
-	}
-
-	public String temporaryCodeByAccount(String email, AccountSecurityEventType eventType) {
+	public String temporaryCodeByAccount(String email,
+										 AccountSecurityEventType eventType,
+										 String provider,
+										 String clientUrl)
+	{
 		return cachedCode(
-			jwtService.createTokensByAccountEmail(email, eventType)
+			jwtService.createTokensByAccountEmail(email, eventType, provider, clientUrl)
 		);
 	}
 

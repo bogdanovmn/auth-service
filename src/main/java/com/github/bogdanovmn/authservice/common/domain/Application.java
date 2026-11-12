@@ -1,42 +1,22 @@
 package com.github.bogdanovmn.authservice.common.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
 import java.util.Date;
-import java.util.List;
 
-@Getter
-@Setter
-
-@Entity
-@Table(name = "application")
+@Value
+@Builder
 public class Application {
 	public static final String ANY_APPLICATION = "any";
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	Long id;
+	String name;
+	String shortDescription;
+	String url;
 
-	private String name;
+	@Builder.Default
+	Boolean active = true;
 
-	private String shortDescription;
-
-	private String url;
-
-	private Boolean active = true;
-
-	@OneToMany(fetch = FetchType.EAGER, mappedBy = "application")
-	private List<Role> roles;
-
-	@Column(insertable = false, updatable = false)
-	private Date createdAt;
+	Date createdAt;
 }

@@ -78,9 +78,6 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
-  jpa:
-    hibernate.ddl-auto: validate
-    open-in-view: false
   datasource:
     url: jdbc:postgresql://hserver:5432/auth
     username: root

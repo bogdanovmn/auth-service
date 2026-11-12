@@ -23,10 +23,11 @@ class JwtBasedUserDetailsFactoryTest {
 		securityRolesProperties()
 	);
 
-	private final Account account = new Account()
-		.setId(UUID.randomUUID())
-		.setName(NAME)
-		.setEmail(EMAIL);
+	private final Account account = Account.builder()
+		.id(UUID.randomUUID())
+		.name(NAME)
+		.email(EMAIL)
+		.build();
 
 	@Test
 	void principalIsTheAccountEmailNotTheUserNameClaim() {

@@ -49,7 +49,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void publicServicesAreAvailableForAuthenticatedUser() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 		when(applicationService.publicServices())
 			.thenReturn(
 				List.of(
@@ -71,7 +71,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void applicationsOverviewIsForbiddenForNonAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			get("/applications")
@@ -82,7 +82,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void updateIsForbiddenForNonAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			put("/applications/1")
@@ -95,7 +95,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void createIsForbiddenForNonAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			post("/applications")
@@ -108,7 +108,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void createIsAvailableForAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			post("/applications")
@@ -130,7 +130,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void deactivateIsForbiddenForNonAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			delete("/applications/1")
@@ -141,7 +141,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void deactivateIsAvailableForAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			delete("/applications/1")
@@ -154,7 +154,7 @@ class ApplicationControllerTest extends AbstractControllerTest {
 	@Test
 	void updateIsAvailableForAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			put("/applications/1")

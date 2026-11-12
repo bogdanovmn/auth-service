@@ -182,4 +182,12 @@
 				ON account_oauth_identity(account_id);
 		</sql>
 	</changeSet>
+
+	<changeSet id="20261112-account-security-event-client" author="bogdanovmn">
+		<sql>
+			ALTER TABLE account_security_event
+				ADD COLUMN client_url varchar(1024) NULL,
+				ADD COLUMN provider varchar(32) NULL;
+		</sql>
+	</changeSet>
 </databaseChangeLog>

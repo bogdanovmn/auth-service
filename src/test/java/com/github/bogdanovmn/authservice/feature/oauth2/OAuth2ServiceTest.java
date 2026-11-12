@@ -44,7 +44,7 @@ class OAuth2ServiceTest {
 
 	@Test
 	void authorizationUrlUsesPkceAndRemembersState() {
-		String url = service.authorizationUrl("github", "https://app.example/cb?state=1");
+		String url = service.authorizationUrl("github", "https://app.example/cb?state=1", null);
 
 		assertEquals("https://provider.example/authorize", url);
 		assertNotNull(client.lastRequest.get());
@@ -59,12 +59,13 @@ class OAuth2ServiceTest {
 		assertNotNull(state);
 		assertEquals("github", state.getProvider());
 		assertEquals("https://app.example/cb?state=1", state.getFrom());
+		assertEquals("https://app.example/cb?state=1", state.getClientUrl());
 		assertNotNull(state.getCodeVerifier());
 	}
 
 	@Test
 	void authorizationUrlRejectsNonHttpRedirectTarget() {
-		service.authorizationUrl("github", "javascript:alert(1)");
+		service.authorizationUrl("github", "javascript:alert(1)", null);
 
 		OAuth2State state = stateCache.asMap().get(client.lastRequest.get().getState());
 		assertNull(state.getFrom());
@@ -81,8 +82,9 @@ class OAuth2ServiceTest {
 			.email("Joe@Mail.RU")
 			.name(" Joe ")
 			.build();
-		Account account = mock(Account.class);
-		when(account.getEmail()).thenReturn("joe@mail.ru");
+		Account account = Account.builder()
+			.email("joe@mail.ru")
+			.build();
 		when(accountService.findOrCreateOAuthAccount("github", "42", "joe@mail.ru", "Joe"))
 			.thenReturn(account);
 		stateCache.put(
@@ -90,6 +92,7 @@ class OAuth2ServiceTest {
 			OAuth2State.builder()
 				.provider("github")
 				.from("https://app.example/cb")
+				.clientUrl("https://app.example/cb?state=1")
 				.codeVerifier("verifier")
 				.createdAt(Instant.now())
 				.build()
@@ -99,6 +102,7 @@ class OAuth2ServiceTest {
 
 		assertEquals(account, result.getAccount());
 		assertEquals("https://app.example/cb", result.getFrom());
+		assertEquals("https://app.example/cb?state=1", result.getClientUrl());
 		verify(jwtService).ensureAccountIsAvailable(account);
 		verify(accountService).findOrCreateOAuthAccount("github", "42", "joe@mail.ru", "Joe");
 	}
@@ -113,7 +117,9 @@ class OAuth2ServiceTest {
 		client.userInfo = OAuth2UserInfo.builder()
 			.providerUserId("42")
 			.build();
-		Account account = mock(Account.class);
+		Account account = Account.builder()
+			.email("user@example.com")
+			.build();
 		when(accountService.findOrCreateOAuthAccount(eq("github"), eq("42"), eq("user@example.com"), any()))
 			.thenReturn(account);
 		stateCache.put(
@@ -181,7 +187,7 @@ class OAuth2ServiceTest {
 			.name("Joe")
 			.build();
 		when(accountService.findOrCreateOAuthAccount(any(), any(), any(), any()))
-			.thenReturn(mock(Account.class));
+			.thenReturn(Account.builder().build());
 		stateCache.put(
 			"state-1",
 			OAuth2State.builder()
@@ -222,7 +228,7 @@ class OAuth2ServiceTest {
 	void unknownProviderIsRejected() {
 		OAuth2LoginException ex = assertThrows(
 			OAuth2LoginException.class,
-			() -> service.authorizationUrl("vk", null)
+			() -> service.authorizationUrl("vk", null, null)
 		);
 		assertEquals(OAuth2LoginException.UNKNOWN_PROVIDER, ex.getErrorCode());
 	}

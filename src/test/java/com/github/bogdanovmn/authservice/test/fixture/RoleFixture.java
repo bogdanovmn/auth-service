@@ -29,11 +29,13 @@ public class RoleFixture {
 	}
 
 	public Role role() {
-		return new Role()
-			.setName(roleName)
-			.setApplication(
-				new Application()
-					.setName(appName)
-			);
+		return Role.builder()
+			.name(roleName)
+			.application(
+				Application.builder()
+					.name(appName)
+					.build()
+			)
+			.build();
 	}
 }

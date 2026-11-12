@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -29,7 +28,7 @@ class OAuth2ControllerTest extends AbstractControllerTest {
 
 	@Test
 	void authorizationRedirectsToProvider() throws Exception {
-		when(oAuth2Service.authorizationUrl("github", "https://app.example/cb"))
+		when(oAuth2Service.authorizationUrl("github", "https://app.example/cb", null))
 			.thenReturn("https://github.com/login/oauth/authorize?client_id=abc");
 
 		this.mockMvc.perform(
@@ -45,17 +44,23 @@ class OAuth2ControllerTest extends AbstractControllerTest {
 
 	@Test
 	void callbackRedirectsBackToFromWithTemporaryCode() throws Exception {
-		Account account = mock(Account.class);
-		when(account.getEmail()).thenReturn("joe@mail.ru");
+		Account account = Account.builder()
+			.email("joe@mail.ru")
+			.build();
 		when(oAuth2Service.login("github", "provider-code", "state-1", null, null, null))
 			.thenReturn(
 				OAuth2LoginResult.builder()
 					.account(account)
 					.from("https://app.example/cb?state=1")
+					.clientUrl("https://app.example/cb?state=1")
 					.build()
 			);
-		when(ssoService.temporaryCodeByAccount("joe@mail.ru", AccountSecurityEventType.OAUTH_LOGIN))
-			.thenReturn("code-1");
+		when(ssoService.temporaryCodeByAccount(
+			"joe@mail.ru",
+			AccountSecurityEventType.OAUTH_LOGIN,
+			"github",
+			"https://app.example/cb?state=1"
+		)).thenReturn("code-1");
 
 		this.mockMvc.perform(
 			get("/oauth2/callback/github")
@@ -71,17 +76,23 @@ class OAuth2ControllerTest extends AbstractControllerTest {
 
 	@Test
 	void callbackWithoutFromGoesToFrontendCallback() throws Exception {
-		Account account = mock(Account.class);
-		when(account.getEmail()).thenReturn("joe@mail.ru");
+		Account account = Account.builder()
+			.email("joe@mail.ru")
+			.build();
 		when(oAuth2Service.login("github", "provider-code", "state-1", null, null, null))
 			.thenReturn(
 				OAuth2LoginResult.builder()
 					.account(account)
+					.clientUrl("https://app.example/cb?state=1")
 					.build()
 			);
 		when(properties.getFrontendUrl()).thenReturn("http://front.example/sso/");
-		when(ssoService.temporaryCodeByAccount("joe@mail.ru", AccountSecurityEventType.OAUTH_LOGIN))
-			.thenReturn("code-1");
+		when(ssoService.temporaryCodeByAccount(
+			"joe@mail.ru",
+			AccountSecurityEventType.OAUTH_LOGIN,
+			"github",
+			"https://app.example/cb?state=1"
+		)).thenReturn("code-1");
 
 		this.mockMvc.perform(
 			get("/oauth2/callback/github")

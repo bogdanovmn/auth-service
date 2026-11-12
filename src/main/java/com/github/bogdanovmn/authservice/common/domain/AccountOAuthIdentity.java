@@ -1,60 +1,35 @@
 package com.github.bogdanovmn.authservice.common.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
 import lombok.ToString;
-import org.hibernate.annotations.GenericGenerator;
+import lombok.Value;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import java.util.Date;
 import java.util.UUID;
 
-@Getter
-@Setter
-@Entity
-@Table(name = "account_oauth_identity")
+@Value
+@Builder(toBuilder = true)
 @ToString(onlyExplicitlyIncluded = true)
 class AccountOAuthIdentity {
 
-	@Id
-	@GeneratedValue(generator = "UUID")
-	@GenericGenerator(
-		name = "UUID",
-		strategy = "org.hibernate.id.UUIDGenerator"
-	)
 	@ToString.Include
-	private UUID id;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "account_id", nullable = false)
-	@ToString.Include
-	private Account account;
+	UUID id;
 
 	@ToString.Include
-	@Column(nullable = false, length = 32)
-	private String provider;
+	UUID accountId;
 
 	@ToString.Include
-	@Column(name = "provider_user_id", nullable = false, length = 255)
-	private String providerUserId;
+	String provider;
 
 	@ToString.Include
-	@Column(length = 320)
-	private String email;
+	String providerUserId;
 
-	@Column(length = 500)
-	private String name;
+	@ToString.Include
+	String email;
 
-	@Column(insertable = false, updatable = false)
-	private Date createdAt;
+	String name;
 
-	@Column(insertable = false, updatable = false)
-	private Date updatedAt;
+	Date createdAt;
+
+	Date updatedAt;
 }

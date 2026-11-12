@@ -9,4 +9,5 @@ import lombok.Value;
 class OAuth2LoginResult {
 	Account account;
 	String from;
+	String clientUrl;
 }

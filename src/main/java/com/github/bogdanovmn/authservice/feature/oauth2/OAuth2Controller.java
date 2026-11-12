@@ -28,11 +28,12 @@ class OAuth2Controller {
 
 	@GetMapping("/authorization/{provider}")
 	ResponseEntity<Void> authorization(@PathVariable String provider,
-									   @RequestParam(required = false) String from)
+									   @RequestParam(required = false) String from,
+									   @RequestParam(required = false) String clientUrl)
 	{
 		try {
 			return redirect(
-				oAuth2Service.authorizationUrl(provider, from)
+				oAuth2Service.authorizationUrl(provider, from, clientUrl)
 			);
 		} catch (OAuth2LoginException ex) {
 			log.info("OAuth2 authorization start failed for provider '{}': {}", provider, ex.getMessage());
@@ -59,7 +60,9 @@ class OAuth2Controller {
 			);
 			String temporaryCode = ssoService.temporaryCodeByAccount(
 				result.getAccount().getEmail(),
-				AccountSecurityEventType.OAUTH_LOGIN
+				AccountSecurityEventType.OAUTH_LOGIN,
+				provider,
+				result.getClientUrl()
 			);
 			return redirect(
 				result.getFrom() != null

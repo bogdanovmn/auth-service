@@ -30,7 +30,7 @@ class OAuth2Service {
 	private final AccountService accountService;
 	private final JwtService jwtService;
 
-	String authorizationUrl(String provider, String from) {
+	String authorizationUrl(String provider, String from, String clientUrl) {
 		OAuth2ProviderClient client = client(provider);
 		OAuth2Properties.Provider config = config(provider);
 		if (config.getClientId() == null || config.getClientId().isBlank()) {
@@ -43,12 +43,16 @@ class OAuth2Service {
 		String state = randomToken();
 		String codeVerifier = client.supportsPkce(config) ? randomToken() : null;
 		String codeChallenge = codeVerifier != null ? codeChallenge(codeVerifier) : null;
+		String redirect = safeRedirect(from);
 
 		oauth2StateCache.put(
 			state,
 			OAuth2State.builder()
 				.provider(provider)
-				.from(safeRedirect(from))
+				.from(redirect)
+				.clientUrl(
+					clientUrl == null || clientUrl.isBlank() ? redirect : clientUrl
+				)
 				.codeVerifier(codeVerifier)
 				.createdAt(Instant.now())
 				.build()
@@ -149,6 +153,7 @@ class OAuth2Service {
 		return OAuth2LoginResult.builder()
 			.account(account)
 			.from(savedState.getFrom())
+			.clientUrl(savedState.getClientUrl())
 			.build();
 	}
 

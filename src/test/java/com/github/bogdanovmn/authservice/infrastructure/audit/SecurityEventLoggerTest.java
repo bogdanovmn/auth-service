@@ -24,9 +24,36 @@ class SecurityEventLoggerTest {
 
 		securityEventLogger.log(userId, AccountSecurityEventType.LOGIN);
 
-		verify(securityEventWriter).write(userId, AccountSecurityEventType.LOGIN, "1.2.3.4", "Chrome/1.0");
+		verify(securityEventWriter).write(userId, AccountSecurityEventType.LOGIN, "1.2.3.4", "Chrome/1.0", null, null);
 		verify(clientInfo).ip();
 		verify(clientInfo).userAgent();
+	}
+
+	@Test
+	void clientUrlIsStoredWithoutQueryAndFragment() {
+		SecurityEventWriter securityEventWriter = mock(SecurityEventWriter.class);
+		ClientInfo clientInfo = mock(ClientInfo.class);
+		SecurityEventLogger securityEventLogger = new SecurityEventLogger(securityEventWriter, clientInfo);
+
+		final UUID userId = UUID.randomUUID();
+		when(clientInfo.ip()).thenReturn("1.2.3.4");
+		when(clientInfo.userAgent()).thenReturn("Chrome/1.0");
+
+		securityEventLogger.log(
+			userId,
+			AccountSecurityEventType.OAUTH_LOGIN,
+			"github",
+			" https://app.example/cb?state=1#section "
+		);
+
+		verify(securityEventWriter).write(
+			userId,
+			AccountSecurityEventType.OAUTH_LOGIN,
+			"1.2.3.4",
+			"Chrome/1.0",
+			"github",
+			"https://app.example/cb"
+		);
 	}
 
 	@Test

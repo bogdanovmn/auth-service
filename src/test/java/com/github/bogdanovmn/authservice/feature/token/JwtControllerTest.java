@@ -17,6 +17,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -24,7 +25,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -67,28 +68,27 @@ class JwtControllerTest extends AbstractControllerTest {
 		when(accountService.findByEmail(email))
 			.thenReturn(
 				Optional.of(
-					new Account()
-						.setName(userName)
-						.setEmail(email)
-						.setId(userId)
-						.setEncodedPassword(
+					Account.builder()
+						.name(userName)
+						.email(email)
+						.id(userId)
+						.encodedPassword(
 							PasswordEncoderFactories.createDelegatingPasswordEncoder().encode(password)
 						)
-						.setRoles(
+						.roles(
 							Set.of(
 								RoleFixture.standardUser(),
 								RoleFixture.moderator("app1")
 							)
 						)
+						.build()
 				)
 			);
 
 		final UUID refreshTokenId = UUID.randomUUID();
 		when(
-			refreshTokenRepository.save(
-				argThat(account -> account.getAccount().getId().equals(userId))
-			)
-		).thenReturn(new RefreshToken().setId(refreshTokenId));
+			refreshTokenRepository.create(eq(userId), any(Date.class))
+		).thenReturn(refreshTokenId);
 
 		MvcResult requestResult = this.mockMvc.perform(
 				post("/jwt")
@@ -139,7 +139,7 @@ class JwtControllerTest extends AbstractControllerTest {
 			refreshTokenBody.getId()
 		);
 
-		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN);
+		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN, null, null);
 	}
 
 	@Test
@@ -171,11 +171,12 @@ class JwtControllerTest extends AbstractControllerTest {
 		when(accountService.findByEmail(email))
 			.thenReturn(
 				Optional.of(
-					new Account()
-						.setId(userId)
-						.setEncodedPassword(
+					Account.builder()
+						.id(userId)
+						.encodedPassword(
 							PasswordEncoderFactories.createDelegatingPasswordEncoder().encode("secret")
 						)
+						.build()
 				)
 			);
 
@@ -202,13 +203,14 @@ class JwtControllerTest extends AbstractControllerTest {
 		when(accountService.findByEmail(email))
 			.thenReturn(
 				Optional.of(
-					new Account()
-						.setId(userId)
-						.setEmail(email)
-						.setStatus(Account.Status.INACTIVE)
-						.setEncodedPassword(
+					Account.builder()
+						.id(userId)
+						.email(email)
+						.status(Account.Status.INACTIVE)
+						.encodedPassword(
 							PasswordEncoderFactories.createDelegatingPasswordEncoder().encode("secret")
 						)
+						.build()
 				)
 			);
 
@@ -227,7 +229,7 @@ class JwtControllerTest extends AbstractControllerTest {
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.code").value(403));
 
-		verify(refreshTokenRepository, never()).save(any());
+		verify(refreshTokenRepository, never()).create(any(), any());
 		verify(securityEventLogger).log(userId, AccountSecurityEventType.LOGIN_FAILED);
 	}
 

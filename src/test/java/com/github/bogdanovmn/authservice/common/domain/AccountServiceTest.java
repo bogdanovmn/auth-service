@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -30,30 +31,46 @@ class AccountServiceTest {
 
 	@Test
 	void knownIdentityIsReusedAndRefreshed() {
-		Account account = new Account().setEmail("joe@mail.ru");
-		AccountOAuthIdentity identity = new AccountOAuthIdentity()
-			.setAccount(account)
-			.setProvider("github")
-			.setProviderUserId("42")
-			.setEmail("old@mail.ru")
-			.setName("Old Name");
+		UUID accountId = UUID.randomUUID();
+		Account account = Account.builder()
+			.id(accountId)
+			.email("joe@mail.ru")
+			.build();
+		AccountOAuthIdentity identity = AccountOAuthIdentity.builder()
+			.id(UUID.randomUUID())
+			.accountId(accountId)
+			.provider("github")
+			.providerUserId("42")
+			.email("old@mail.ru")
+			.name("Old Name")
+			.build();
 		when(identityRepository.findByProviderAndProviderUserId("github", "42"))
 			.thenReturn(Optional.of(identity));
+		when(accountRepository.findById(accountId))
+			.thenReturn(Optional.of(account));
 
 		Account result = service.findOrCreateOAuthAccount(
 			"github", "42", "new@mail.ru", "New Name"
 		);
 
 		assertSame(account, result);
-		assertEquals("new@mail.ru", identity.getEmail());
-		assertEquals("New Name", identity.getName());
-		verify(identityRepository, never()).save(any());
+
+		ArgumentCaptor<AccountOAuthIdentity> captor =
+			ArgumentCaptor.forClass(AccountOAuthIdentity.class);
+		verify(identityRepository).update(captor.capture());
+		assertEquals("new@mail.ru", captor.getValue().getEmail());
+		assertEquals("New Name", captor.getValue().getName());
+		verify(identityRepository, never()).create(any());
 		verify(accountRepository, never()).findByEmailIgnoreCase(anyString());
 	}
 
 	@Test
 	void knownEmailIsLinkedToTheExistingAccount() {
-		Account account = new Account().setEmail("joe@mail.ru");
+		UUID accountId = UUID.randomUUID();
+		Account account = Account.builder()
+			.id(accountId)
+			.email("joe@mail.ru")
+			.build();
 		when(identityRepository.findByProviderAndProviderUserId("github", "42"))
 			.thenReturn(Optional.empty());
 		when(accountRepository.findByEmailIgnoreCase("joe@mail.ru"))
@@ -64,12 +81,12 @@ class AccountServiceTest {
 		);
 
 		assertSame(account, result);
-		verify(accountRepository, never()).save(any());
+		verify(accountRepository, never()).create(any());
 
 		ArgumentCaptor<AccountOAuthIdentity> captor =
 			ArgumentCaptor.forClass(AccountOAuthIdentity.class);
-		verify(identityRepository).save(captor.capture());
-		assertSame(account, captor.getValue().getAccount());
+		verify(identityRepository).create(captor.capture());
+		assertEquals(accountId, captor.getValue().getAccountId());
 		assertEquals("github", captor.getValue().getProvider());
 		assertEquals("42", captor.getValue().getProviderUserId());
 		assertEquals("joe@mail.ru", captor.getValue().getEmail());
@@ -77,13 +94,15 @@ class AccountServiceTest {
 
 	@Test
 	void unknownEmailCreatesAnAccountWithTheUserRole() {
-		Role userRole = new Role();
+		Role userRole = Role.builder()
+			.name(Role.Name.user)
+			.build();
 		when(identityRepository.findByProviderAndProviderUserId("github", "42"))
 			.thenReturn(Optional.empty());
 		when(accountRepository.findByEmailIgnoreCase("joe@mail.ru"))
 			.thenReturn(Optional.empty());
 		when(roleRepository.getBasicUserRole()).thenReturn(userRole);
-		when(accountRepository.save(any(Account.class)))
+		when(accountRepository.create(any(Account.class)))
 			.thenAnswer(invocation -> invocation.getArgument(0));
 
 		Account result = service.findOrCreateOAuthAccount(
@@ -94,6 +113,6 @@ class AccountServiceTest {
 		assertEquals("Joe", result.getName());
 		assertTrue(result.getEncodedPassword().startsWith("{"));
 		assertTrue(result.getRoles().contains(userRole));
-		verify(identityRepository).save(any(AccountOAuthIdentity.class));
+		verify(identityRepository).create(any(AccountOAuthIdentity.class));
 	}
 }

@@ -46,7 +46,7 @@ class AccountActivityControllerTest extends AbstractControllerTest {
 	void userActivityIsAvailableForAdmin() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 		when(accountActivityService.events(userId))
 			.thenReturn(
 				UserActivityResponse.builder()
@@ -90,7 +90,7 @@ class AccountActivityControllerTest extends AbstractControllerTest {
 	@Test
 	void userActivityNotFound() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 		when(accountActivityService.events(any(UUID.class)))
 			.thenThrow(new java.util.NoSuchElementException("User with id 'x' has not been found"));
 

@@ -25,7 +25,7 @@ class AccountActivityService {
 			);
 
 		List<UserActivityResponse.Event> events = accountSecurityEventRepository
-			.findTop100ByAccount_IdOrderByCreatedAtDesc(accountId)
+			.lastByAccountId(accountId)
 			.stream()
 			.map(
 				event -> UserActivityResponse.Event.builder()
@@ -33,6 +33,8 @@ class AccountActivityService {
 					.type(event.getType().name())
 					.ip(event.getIp())
 					.userAgent(event.getUserAgent())
+					.clientUrl(event.getClientUrl())
+					.provider(event.getProvider())
 					.createdAt(event.getCreatedAt())
 					.build()
 			)

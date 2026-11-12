@@ -30,14 +30,14 @@ class SsoTemporaryCodeExpiredTest {
 	void temporaryCodeExpired() {
 		String email = "email@mail.com";
 		String password = "pass";
-		when(jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO))
+		when(jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO, null))
 			.thenReturn(
 				JwtResponse.builder()
 					.refreshToken("r-token")
 					.token("token")
 				.build()
 			);
-		String code = ssoService.temporaryCode(email, password);
+		String code = ssoService.temporaryCode(email, password, null);
 		assertThrows(
 			NoSuchElementException.class,
 			() -> ssoService.tokens(code)

@@ -27,16 +27,16 @@ class PasswordResetLinkService {
 
 	@Transactional
 	public PasswordResetToken create(Account account) {
-		passwordResetTokenRepository.deleteByAccount(account);
-		passwordResetTokenRepository.flush();
-
-		return passwordResetTokenRepository.save(
-			new PasswordResetToken()
-				.setAccount(account)
-				.setExpiresAt(
-					new Date(System.currentTimeMillis() + properties.getTtlInHours() * 3600_000)
-				)
+		passwordResetTokenRepository.deleteByAccountId(account.getId());
+		Date expiresAt = new Date(
+			System.currentTimeMillis() + properties.getTtlInHours() * 3600_000
 		);
+		UUID id = passwordResetTokenRepository.create(account.getId(), expiresAt);
+		return PasswordResetToken.builder()
+			.id(id)
+			.accountId(account.getId())
+			.expiresAt(expiresAt)
+			.build();
 	}
 
 	long ttlInMinutes() {
@@ -54,15 +54,17 @@ class PasswordResetLinkService {
 			throw new IllegalArgumentException("The password reset link has expired");
 		}
 
-		Account account = token.getAccount();
-		account.setEncodedPassword(
-			PasswordEncoderFactories.createDelegatingPasswordEncoder().encode(password)
+		Account account = accountRepository.findById(token.getAccountId())
+			.orElseThrow(
+				() -> new NoSuchElementException("Unknown password reset token")
+			);
+		accountRepository.updatePassword(
+			account.getId(),
+			PasswordEncoderFactories.createDelegatingPasswordEncoder().encode(password),
+			new Date()
 		);
-		account.setPasswordChangedAt(new Date());
-		accountRepository.save(account);
 
-		passwordResetTokenRepository.delete(token);
-		passwordResetTokenRepository.flush();
+		passwordResetTokenRepository.deleteById(token.getId());
 
 		securityEventLogger.log(account.getId(), AccountSecurityEventType.PASSWORD_CHANGED);
 		jwtService.deleteRefreshToken(account);
