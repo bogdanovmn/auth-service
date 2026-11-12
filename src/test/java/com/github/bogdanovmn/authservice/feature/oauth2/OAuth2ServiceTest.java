@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -233,8 +234,41 @@ class OAuth2ServiceTest {
 		assertEquals(OAuth2LoginException.UNKNOWN_PROVIDER, ex.getErrorCode());
 	}
 
+	@Test
+	void enabledProvidersReturnsOnlyEnabledOnes() {
+		assertEquals(List.of("github"), service.enabledProviders());
+	}
+
+	@Test
+	void disabledProviderIsNotExposedAndCannotBeUsed() {
+		service = new OAuth2Service(
+			properties("client-id", "secret", "id", false),
+			List.of(client),
+			stateCache,
+			accountService,
+			jwtService
+		);
+
+		assertTrue(service.enabledProviders().isEmpty());
+
+		OAuth2LoginException ex = assertThrows(
+			OAuth2LoginException.class,
+			() -> service.authorizationUrl("github", null, null)
+		);
+		assertEquals(OAuth2LoginException.UNKNOWN_PROVIDER, ex.getErrorCode());
+	}
+
 	private static OAuth2Properties properties(String clientId, String secret, String mode) {
+		return properties(clientId, secret, mode, true);
+	}
+
+	private static OAuth2Properties properties(String clientId,
+											   String secret,
+											   String mode,
+											   boolean enabled)
+	{
 		OAuth2Properties.Provider provider = new OAuth2Properties.Provider()
+			.setEnabled(enabled)
 			.setClientId(clientId)
 			.setClientSecret(secret)
 			.setMode(mode);

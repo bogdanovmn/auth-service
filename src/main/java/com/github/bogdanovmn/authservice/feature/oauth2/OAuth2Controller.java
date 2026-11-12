@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @RestController
 @RequestMapping("/oauth2")
@@ -25,6 +26,11 @@ class OAuth2Controller {
 	private final OAuth2Service oAuth2Service;
 	private final SsoService ssoService;
 	private final OAuth2Properties properties;
+
+	@GetMapping("/providers")
+	List<String> providers() {
+		return oAuth2Service.enabledProviders();
+	}
 
 	@GetMapping("/authorization/{provider}")
 	ResponseEntity<Void> authorization(@PathVariable String provider,

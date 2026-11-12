@@ -8,9 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.util.List;
+
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ContextConfiguration(
@@ -25,6 +28,16 @@ class OAuth2ControllerTest extends AbstractControllerTest {
 	private SsoService ssoService;
 	@MockBean
 	private OAuth2Properties properties;
+
+	@Test
+	void enabledProvidersAreAvailableForAnonymous() throws Exception {
+		when(oAuth2Service.enabledProviders()).thenReturn(List.of("vk", "yandex"));
+
+		this.mockMvc.perform(get("/oauth2/providers"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$[0]").value("vk"))
+			.andExpect(jsonPath("$[1]").value("yandex"));
+	}
 
 	@Test
 	void authorizationRedirectsToProvider() throws Exception {

@@ -5,7 +5,7 @@ import lombok.Value;
 
 @Value
 @Builder
-class OAuth2AuthorizationRequest {
+public class OAuth2AuthorizationRequest {
 	String provider;
 	OAuth2Properties.Provider config;
 	String redirectUri;

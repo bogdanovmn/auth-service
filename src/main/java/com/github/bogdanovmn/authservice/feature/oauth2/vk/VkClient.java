@@ -1,7 +1,12 @@
-package com.github.bogdanovmn.authservice.feature.oauth2;
+package com.github.bogdanovmn.authservice.feature.oauth2.vk;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.bogdanovmn.authservice.feature.oauth2.AbstractOAuth2Client;
+import com.github.bogdanovmn.authservice.feature.oauth2.OAuth2AuthorizationRequest;
+import com.github.bogdanovmn.authservice.feature.oauth2.OAuth2Properties;
+import com.github.bogdanovmn.authservice.feature.oauth2.OAuth2TokenResponse;
+import com.github.bogdanovmn.authservice.feature.oauth2.OAuth2UserInfo;
 import org.springframework.stereotype.Component;
 
 import java.net.http.HttpClient;

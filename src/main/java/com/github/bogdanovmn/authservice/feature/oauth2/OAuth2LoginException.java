@@ -1,6 +1,6 @@
 package com.github.bogdanovmn.authservice.feature.oauth2;
 
-class OAuth2LoginException extends RuntimeException {
+public class OAuth2LoginException extends RuntimeException {
 
 	static final String INVALID_STATE = "invalid_state";
 	static final String INVALID_REQUEST = "invalid_request";

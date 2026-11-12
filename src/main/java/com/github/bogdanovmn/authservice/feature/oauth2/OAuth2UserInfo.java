@@ -5,7 +5,7 @@ import lombok.Value;
 
 @Value
 @Builder
-class OAuth2UserInfo {
+public class OAuth2UserInfo {
 	String providerUserId;
 	String email;
 	String name;

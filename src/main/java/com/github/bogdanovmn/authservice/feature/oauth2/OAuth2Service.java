@@ -30,6 +30,17 @@ class OAuth2Service {
 	private final AccountService accountService;
 	private final JwtService jwtService;
 
+	List<String> enabledProviders() {
+		if (properties.getProviders() == null) {
+			return List.of();
+		}
+		return clients.stream()
+			.map(OAuth2ProviderClient::getName)
+			.filter(this::isEnabled)
+			.sorted()
+			.toList();
+	}
+
 	String authorizationUrl(String provider, String from, String clientUrl) {
 		OAuth2ProviderClient client = client(provider);
 		OAuth2Properties.Provider config = config(provider);
@@ -170,7 +181,7 @@ class OAuth2Service {
 	}
 
 	private OAuth2Properties.Provider config(String provider) {
-		return Optional.ofNullable(properties.getProviders())
+		OAuth2Properties.Provider config = Optional.ofNullable(properties.getProviders())
 			.map(providers -> providers.get(provider))
 			.orElseThrow(
 				() -> new OAuth2LoginException(
@@ -178,6 +189,18 @@ class OAuth2Service {
 					"Provider '%s' is not configured".formatted(provider)
 				)
 			);
+		if (!config.isEnabled()) {
+			throw new OAuth2LoginException(
+				OAuth2LoginException.UNKNOWN_PROVIDER,
+				"Provider '%s' is disabled".formatted(provider)
+			);
+		}
+		return config;
+	}
+
+	private boolean isEnabled(String provider) {
+		OAuth2Properties.Provider config = properties.getProviders().get(provider);
+		return config != null && config.isEnabled();
 	}
 
 	private String redirectUri(String provider) {

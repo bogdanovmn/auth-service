@@ -9,7 +9,7 @@ import java.util.Map;
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "auth.oauth2")
-class OAuth2Properties {
+public class OAuth2Properties {
 
 	private String redirectBaseUrl;
 	private String frontendUrl;
@@ -18,7 +18,8 @@ class OAuth2Properties {
 
 	@Getter
 	@Setter
-	static class Provider {
+	public static class Provider {
+		private boolean enabled = true;
 		private String clientId;
 		private String clientSecret;
 		private String scope;

@@ -63,15 +63,22 @@ auth.oauth2:
   state-ttl-in-seconds: 600
   providers:
     github:
+      enabled: ${GITHUB_OAUTH_ENABLED:false}
       client-id: ${GITHUB_CLIENT_ID:}
       client-secret: ${GITHUB_CLIENT_SECRET:}
       scope: read:user user:email
     vk:
+      enabled: ${VK_OAUTH_ENABLED:true}
       client-id: ${VK_CLIENT_ID:}
       client-secret: ${VK_CLIENT_SECRET:}
       mode: ${VK_OAUTH_MODE:id}
       scope: email
       api-version: '5.245'
+    yandex:
+      enabled: ${YANDEX_OAUTH_ENABLED:true}
+      client-id: ${YANDEX_CLIENT_ID:}
+      client-secret: ${YANDEX_CLIENT_SECRET:}
+      scope: 'login:email+login:info'
 
 spring:
   application.name: auth-service

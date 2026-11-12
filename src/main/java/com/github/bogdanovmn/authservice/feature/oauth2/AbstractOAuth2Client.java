@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-abstract class AbstractOAuth2Client implements OAuth2ProviderClient {
+public abstract class AbstractOAuth2Client implements OAuth2ProviderClient {
 
 	protected final ObjectMapper objectMapper;
 	protected final HttpClient httpClient;
@@ -24,12 +24,19 @@ abstract class AbstractOAuth2Client implements OAuth2ProviderClient {
 	}
 
 	protected JsonNode getJson(String url, String accessToken) {
+		return getJsonWithAuthorization(
+			url,
+			accessToken != null ? "Bearer " + accessToken : null
+		);
+	}
+
+	protected JsonNode getJsonWithAuthorization(String url, String authorization) {
 		HttpRequest.Builder builder = HttpRequest.newBuilder(java.net.URI.create(url))
 			.header("Accept", "application/json")
 			.header("User-Agent", "auth-service")
 			.GET();
-		if (accessToken != null) {
-			builder.header("Authorization", "Bearer " + accessToken);
+		if (authorization != null) {
+			builder.header("Authorization", authorization);
 		}
 		return send(builder.build());
 	}
