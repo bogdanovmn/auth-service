@@ -29,7 +29,13 @@ class ApplicationServiceTest {
 	@Test
 	void systemApplicationCannotBeUpdated() {
 		when(applicationRepository.findById(1L))
-			.thenReturn(Optional.of(new Application().setName(Application.ANY_APPLICATION)));
+			.thenReturn(
+				Optional.of(
+					Application.builder()
+						.name(Application.ANY_APPLICATION)
+						.build()
+				)
+			);
 
 		assertThrows(
 			IllegalArgumentException.class,
@@ -43,7 +49,13 @@ class ApplicationServiceTest {
 	@Test
 	void regularApplicationCannotBeRenamedToSystemName() {
 		when(applicationRepository.findById(1L))
-			.thenReturn(Optional.of(new Application().setName("translator")));
+			.thenReturn(
+				Optional.of(
+					Application.builder()
+						.name("translator")
+						.build()
+				)
+			);
 
 		assertThrows(
 			IllegalArgumentException.class,
@@ -57,7 +69,13 @@ class ApplicationServiceTest {
 	@Test
 	void systemApplicationCannotBeDeactivated() {
 		when(applicationRepository.findById(1L))
-			.thenReturn(Optional.of(new Application().setName(Application.ANY_APPLICATION)));
+			.thenReturn(
+				Optional.of(
+					Application.builder()
+						.name(Application.ANY_APPLICATION)
+						.build()
+				)
+			);
 
 		assertThrows(
 			IllegalArgumentException.class,

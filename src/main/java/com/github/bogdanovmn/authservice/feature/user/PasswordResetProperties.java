@@ -8,5 +8,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ConfigurationProperties(prefix = "jwt.reset-password")
 public class PasswordResetProperties {
-	private long ttlInHours = 1;
+	private long ttlInHours;
 }

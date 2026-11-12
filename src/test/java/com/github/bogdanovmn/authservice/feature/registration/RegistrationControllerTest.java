@@ -47,7 +47,7 @@ class RegistrationControllerTest extends AbstractControllerTest {
 	void accountAlreadyExists() throws Exception {
 		final String email = "joe@mail.ru";
 		when(accountService.findByEmail(email))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 
 		this.mockMvc.perform(
 			post("/accounts")

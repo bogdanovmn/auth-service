@@ -46,7 +46,7 @@ class LoginAttemptControllerTest extends AbstractControllerTest {
 	@Test
 	void lastAttemptsIsAvailableForAdmin() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 		when(loginAttemptService.last())
 			.thenReturn(
 				List.of(

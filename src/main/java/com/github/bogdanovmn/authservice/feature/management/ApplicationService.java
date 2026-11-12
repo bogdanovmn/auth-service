@@ -2,9 +2,7 @@ package com.github.bogdanovmn.authservice.feature.management;
 
 import com.github.bogdanovmn.authservice.common.domain.AlreadyExistsException;
 import com.github.bogdanovmn.authservice.common.domain.Application;
-import com.github.bogdanovmn.authservice.common.domain.Role;
 import com.github.bogdanovmn.authservice.common.domain.RoleRepository;
-import com.github.bogdanovmn.authservice.feature.management.ApplicationRepository.ApplicationStatisticQueryResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,21 +30,16 @@ class ApplicationService {
 			throw new AlreadyExistsException(existedApp.get().getName());
 		}
 
-		Application app = applicationRepository.save(
-			new Application()
-				.setName(newApp.getName())
+		Long appId = applicationRepository.create(newApp.getName());
+		newApp.getRoles().forEach(
+			roleName -> roleRepository.create(roleName.name(), appId)
 		);
-		List<Role> roles = newApp.getRoles().stream()
-			.map(roleName -> new Role().setName(roleName).setApplication(app))
-			.toList();
-		app.setRoles(roles);
-		roleRepository.saveAll(roles);
 	}
 
 	@Transactional(readOnly = true)
 	public List<ApplicationStatistic> allWithRoles() {
 		return applicationRepository.getApplicationsStatistic().stream()
-			.collect(Collectors.groupingBy(ApplicationStatisticQueryResult::getAppId))
+			.collect(Collectors.groupingBy(ApplicationStatisticRow::getAppId))
 			.values()
 			.stream().map(stat -> {
 				ApplicationStatistic.ApplicationStatisticBuilder result = ApplicationStatistic.builder();
@@ -59,9 +52,10 @@ class ApplicationService {
 					.filter(s -> s.getRoleName() != null)
 					.forEach(
 						s -> result.role(
-							new ApplicationStatistic.Role(
-								s.getRoleName(), s.getUsersCount()
-							)
+							ApplicationStatistic.Role.builder()
+								.name(s.getRoleName())
+								.usersCount(s.getUsersCount())
+								.build()
 						)
 					);
 				return result.build();
@@ -108,9 +102,12 @@ class ApplicationService {
 				}
 			);
 
-		app.setName(request.getName());
-		app.setShortDescription(request.getShortDescription());
-		app.setUrl(request.getUrl());
+		applicationRepository.update(
+			id,
+			request.getName(),
+			request.getShortDescription(),
+			request.getUrl()
+		);
 	}
 
 	@Transactional
@@ -124,6 +121,6 @@ class ApplicationService {
 				"The '%s' application is a system application".formatted(Application.ANY_APPLICATION)
 			);
 		}
-		app.setActive(false);
+		applicationRepository.deactivate(id);
 	}
 }

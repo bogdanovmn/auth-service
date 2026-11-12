@@ -46,7 +46,14 @@ class UserServiceTest {
 	void ownStatusCannotBeChanged() {
 		final UUID accountId = UUID.randomUUID();
 		when(accountRepository.findById(accountId))
-			.thenReturn(Optional.of(new Account().setId(accountId).setEmail(ADMIN_EMAIL)));
+			.thenReturn(
+				Optional.of(
+					Account.builder()
+						.id(accountId)
+						.email(ADMIN_EMAIL)
+						.build()
+				)
+			);
 
 		assertThrows(
 			IllegalArgumentException.class,
@@ -57,17 +64,18 @@ class UserServiceTest {
 	@Test
 	void deactivationRevokesRefreshToken() {
 		final UUID accountId = UUID.randomUUID();
-		Account account = new Account()
-			.setId(accountId)
-			.setEmail(USER_EMAIL)
-			.setStatus(Account.Status.ACTIVE);
+		Account account = Account.builder()
+			.id(accountId)
+			.email(USER_EMAIL)
+			.status(Account.Status.ACTIVE)
+			.build();
 
 		when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
 		UserResponse response = userService.changeStatus(accountId, Account.Status.INACTIVE, ADMIN_EMAIL);
 
-		assertEquals(Account.Status.INACTIVE, account.getStatus());
 		assertEquals("INACTIVE", response.getStatus());
+		verify(accountRepository).updateStatus(accountId, Account.Status.INACTIVE);
 		verify(jwtService).deleteRefreshToken(account);
 		verify(securityEventLogger).log(accountId, AccountSecurityEventType.STATUS_CHANGED);
 	}
@@ -75,32 +83,35 @@ class UserServiceTest {
 	@Test
 	void activationKeepsRefreshToken() {
 		final UUID accountId = UUID.randomUUID();
-		Account account = new Account()
-			.setId(accountId)
-			.setEmail(USER_EMAIL)
-			.setStatus(Account.Status.INACTIVE);
+		Account account = Account.builder()
+			.id(accountId)
+			.email(USER_EMAIL)
+			.status(Account.Status.INACTIVE)
+			.build();
 
 		when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
 		UserResponse response = userService.changeStatus(accountId, Account.Status.ACTIVE, ADMIN_EMAIL);
 
-		assertEquals(Account.Status.ACTIVE, account.getStatus());
 		assertEquals("ACTIVE", response.getStatus());
+		verify(accountRepository).updateStatus(accountId, Account.Status.ACTIVE);
 		verify(jwtService, never()).deleteRefreshToken(any());
 	}
 
 	@Test
 	void sameStatusChangesNothing() {
 		final UUID accountId = UUID.randomUUID();
-		Account account = new Account()
-			.setId(accountId)
-			.setEmail(USER_EMAIL)
-			.setStatus(Account.Status.ACTIVE);
+		Account account = Account.builder()
+			.id(accountId)
+			.email(USER_EMAIL)
+			.status(Account.Status.ACTIVE)
+			.build();
 
 		when(accountRepository.findById(accountId)).thenReturn(Optional.of(account));
 
 		userService.changeStatus(accountId, Account.Status.ACTIVE, ADMIN_EMAIL);
 
+		verify(accountRepository, never()).updateStatus(any(), any());
 		verify(jwtService, never()).deleteRefreshToken(any());
 		verify(securityEventLogger, never()).log(any(), any());
 	}

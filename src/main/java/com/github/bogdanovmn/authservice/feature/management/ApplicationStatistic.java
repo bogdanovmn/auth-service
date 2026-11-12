@@ -17,6 +17,10 @@ class ApplicationStatistic {
 	@Singular
 	List<Role> roles;
 
-	record Role(String name, int usersCount) {
+	@Value
+	@Builder
+	static class Role {
+		String name;
+		int usersCount;
 	}
 }

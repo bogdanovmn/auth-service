@@ -12,17 +12,22 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-class SsoService {
+public class SsoService {
 	private final JwtService jwtService;
 	private final Cache<String, JwtResponse> temporaryCodeCache;
 
-	public String temporaryCode(String email, String password) {
+	String temporaryCode(String email, String password, String clientUrl) {
 		return cachedCode(
-			jwtService.createTokensByAccountCredentials(email, password, AccountSecurityEventType.SSO)
+			jwtService.createTokensByAccountCredentials(
+				email,
+				password,
+				AccountSecurityEventType.SSO,
+				clientUrl
+			)
 		);
 	}
 
-	public JwtResponse tokens(String code) {
+	JwtResponse tokens(String code) {
 		// getIfPresent() + invalidate() would let two concurrent requests read the
 		// same code before either invalidates it. Removing from the map is atomic,
 		// so a code is consumed by exactly one caller.
@@ -33,9 +38,13 @@ class SsoService {
 		return tokens;
 	}
 
-	public String temporaryCodeByAccount(String email) {
+	public String temporaryCodeByAccount(String email,
+										 AccountSecurityEventType eventType,
+										 String provider,
+										 String clientUrl)
+	{
 		return cachedCode(
-			jwtService.createTokensByAccountEmail(email)
+			jwtService.createTokensByAccountEmail(email, eventType, provider, clientUrl)
 		);
 	}
 

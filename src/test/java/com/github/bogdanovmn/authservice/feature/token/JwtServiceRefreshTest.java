@@ -22,7 +22,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -46,11 +45,8 @@ class JwtServiceRefreshTest {
 	void setUp() {
 		when(jwtFactory.createToken(any())).thenReturn("access-token");
 		when(jwtFactory.createRefreshToken(any(), any())).thenReturn("new-refresh-token");
-		when(refreshTokenRepository.getByAccount(any())).thenReturn(Optional.empty());
-		when(refreshTokenRepository.save(any()))
-			.thenAnswer(
-				invocation -> ((RefreshToken) invocation.getArgument(0)).setId(UUID.randomUUID())
-			);
+		when(refreshTokenRepository.findByAccountId(any())).thenReturn(Optional.empty());
+		when(refreshTokenRepository.create(any(), any())).thenReturn(UUID.randomUUID());
 	}
 
 	@Test
@@ -63,34 +59,40 @@ class JwtServiceRefreshTest {
 			() -> jwtService.createTokensByRefreshToken(STORED_TOKEN)
 		);
 
-		verify(refreshTokenRepository).delete(argThat(stored -> stored.getId().equals(tokenId)));
-		verify(refreshTokenRepository, never()).save(any());
+		verify(refreshTokenRepository).deleteById(tokenId);
+		verify(refreshTokenRepository, never()).create(any(), any());
 	}
 
 	@Test
 	void inactiveAccountCannotRefresh() {
+		Account account = account().toBuilder()
+			.status(Account.Status.INACTIVE)
+			.build();
 		stubStoredToken(
 			UUID.randomUUID(),
-			account().setStatus(Account.Status.INACTIVE),
+			account,
 			new Date(System.currentTimeMillis() + 60_000)
 		);
+		when(accountService.getById(account.getId())).thenReturn(account);
 
 		assertThrows(
 			AccountNotAvailableException.class,
 			() -> jwtService.createTokensByRefreshToken(STORED_TOKEN)
 		);
 
-		verify(refreshTokenRepository, never()).save(any());
+		verify(refreshTokenRepository, never()).create(any(), any());
 	}
 
 	@Test
 	void activeAccountGetsANewTokenPair() {
 		UUID accountId = UUID.randomUUID();
+		Account account = account(accountId);
 		stubStoredToken(
 			UUID.randomUUID(),
-			account(accountId),
+			account,
 			new Date(System.currentTimeMillis() + 60_000)
 		);
+		when(accountService.getById(accountId)).thenReturn(account);
 
 		JwtResponse response = jwtService.createTokensByRefreshToken(STORED_TOKEN);
 
@@ -102,14 +104,19 @@ class JwtServiceRefreshTest {
 	@Test
 	void ssoByEmailIsBlockedForInactiveAccount() {
 		when(accountService.getByEmail(EMAIL))
-			.thenReturn(account().setStatus(Account.Status.INACTIVE));
+			.thenReturn(account().toBuilder().status(Account.Status.INACTIVE).build());
 
 		assertThrows(
 			AccountNotAvailableException.class,
-			() -> jwtService.createTokensByAccountEmail(EMAIL)
+			() -> jwtService.createTokensByAccountEmail(
+				EMAIL,
+				AccountSecurityEventType.SSO,
+				null,
+				null
+			)
 		);
 
-		verify(refreshTokenRepository, never()).save(any());
+		verify(refreshTokenRepository, never()).create(any(), any());
 	}
 
 	@Test
@@ -135,10 +142,11 @@ class JwtServiceRefreshTest {
 		when(refreshTokenRepository.findById(tokenId))
 			.thenReturn(
 				Optional.of(
-					new RefreshToken()
-						.setId(tokenId)
-						.setAccount(account)
-						.setExpiresAt(expiresAt)
+					RefreshToken.builder()
+						.id(tokenId)
+						.accountId(account.getId())
+						.expiresAt(expiresAt)
+						.build()
 				)
 			);
 	}
@@ -148,12 +156,13 @@ class JwtServiceRefreshTest {
 	}
 
 	private static Account account(UUID id) {
-		return new Account()
-			.setId(id)
-			.setName("Joe")
-			.setEmail(EMAIL)
-			.setStatus(Account.Status.ACTIVE)
-			.setEncodedPassword(PasswordEncoderFactories.createDelegatingPasswordEncoder().encode("secret"))
-			.setRoles(Set.of(RoleFixture.standardUser()));
+		return Account.builder()
+			.id(id)
+			.name("Joe")
+			.email(EMAIL)
+			.status(Account.Status.ACTIVE)
+			.encodedPassword(PasswordEncoderFactories.createDelegatingPasswordEncoder().encode("secret"))
+			.roles(Set.of(RoleFixture.standardUser()))
+			.build();
 	}
 }

@@ -6,7 +6,6 @@ import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import com.github.bogdanovmn.authservice.feature.token.JwtService;
 import com.github.bogdanovmn.authservice.infrastructure.audit.SecurityEventLogger;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +23,7 @@ class UserService {
 
 	@Transactional(readOnly = true)
 	public List<UserResponse> all() {
-		return accountRepository.findAll(Sort.by("email")).stream()
+		return accountRepository.findAllOrderByCreatedAtDesc().stream()
 			.map(UserService::toResponse)
 			.toList();
 	}
@@ -61,15 +60,19 @@ class UserService {
 			);
 		}
 
+		Account updated = account;
 		if (account.getStatus() != status) {
-			account.setStatus(status);
+			accountRepository.updateStatus(account.getId(), status);
+			updated = account.toBuilder()
+				.status(status)
+				.build();
 			securityEventLogger.log(account.getId(), AccountSecurityEventType.STATUS_CHANGED);
 			if (!status.isAvailable()) {
 				jwtService.deleteRefreshToken(account);
 			}
 		}
 
-		return toResponse(account);
+		return toResponse(updated);
 	}
 
 	private static UserResponse toResponse(Account account) {

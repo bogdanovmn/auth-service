@@ -9,7 +9,6 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -39,10 +38,7 @@ public class GlobalExceptionHandling {
 		return exceptionResponse(req, ex, HttpStatus.FORBIDDEN.value());
 	}
 
-	@ExceptionHandler(value = {
-		JpaObjectRetrievalFailureException.class,
-		NoSuchElementException.class
-	})
+	@ExceptionHandler(value = NoSuchElementException.class)
 	public ResponseEntity<ExceptionResponse> notFoundException(HttpServletRequest req, Exception ex) throws Exception {
 		return exceptionResponse(req, ex, HttpStatus.NOT_FOUND.value());
 	}

@@ -1,80 +1,47 @@
 package com.github.bogdanovmn.authservice.common.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
 import lombok.ToString;
-import org.hibernate.annotations.GenericGenerator;
+import lombok.Value;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.Table;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
 
-@Getter
-@Setter
-
-@Entity
-@Table(name = "account")
+@Value
+@Builder(toBuilder = true)
 @ToString(onlyExplicitlyIncluded = true)
 public class Account {
 
 	public enum Status {
 		CREATED, ACTIVE, INACTIVE;
 
-		/**
-		 * Only INACTIVE accounts are blocked. CREATED is the default state of a
-		 * freshly registered account and has to keep working until an admin
-		 * explicitly deactivates it.
-		 */
 		public boolean isAvailable() {
 			return this != INACTIVE;
 		}
 	}
 
-	@Id
-	@GeneratedValue(generator = "UUID")
-	@GenericGenerator(
-		name = "UUID",
-		strategy = "org.hibernate.id.UUIDGenerator"
-	)
 	@ToString.Include
-	private UUID id;
-
-	private String name;
-	private String encodedPassword;
-	@ToString.Include
-	private String email;
+	UUID id;
 
 	@ToString.Include
-	@Enumerated(EnumType.STRING)
-	@Column(columnDefinition = "account_status_domain")
-	private Status status = Status.CREATED;
+	String email;
 
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(
-		name = "account2role",
-		joinColumns = @JoinColumn(name = "account_id", referencedColumnName = "id"),
-		inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
-	)
-	private Set<Role> roles;
+	String name;
 
-	@Column(insertable = false, updatable = false)
-	private Date createdAt;
-
-	@Column(insertable = false, updatable = false)
-	private Date updatedAt;
+	String encodedPassword;
 
 	@ToString.Include
-	@Column(name = "password_changed_at")
-	private Date passwordChangedAt;
+	@Builder.Default
+	Status status = Status.CREATED;
+
+	@Builder.Default
+	Set<Role> roles = Set.of();
+
+	Date createdAt;
+
+	Date updatedAt;
+
+	@ToString.Include
+	Date passwordChangedAt;
 }

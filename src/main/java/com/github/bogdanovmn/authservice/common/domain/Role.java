@@ -1,41 +1,19 @@
 package com.github.bogdanovmn.authservice.common.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
+import lombok.Value;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 import java.util.Date;
 
-@Getter
-@Setter
-
-@Entity
-@Table(name = "role")
+@Value
+@Builder
 public class Role {
 	public enum Name { user, admin, moderator }
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-
-	@Enumerated(EnumType.STRING)
-	private Name name;
-
-	@ManyToOne
-	@JoinColumn(name = "app_id")
-	private Application application;
-
-	@Column(insertable = false, updatable = false)
-	private Date createdAt;
+	Long id;
+	Name name;
+	Application application;
+	Date createdAt;
 
 	@Override
 	public String toString() {

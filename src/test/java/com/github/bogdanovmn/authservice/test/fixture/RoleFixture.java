@@ -2,24 +2,40 @@ package com.github.bogdanovmn.authservice.test.fixture;
 
 import com.github.bogdanovmn.authservice.common.domain.Application;
 import com.github.bogdanovmn.authservice.common.domain.Role;
+import lombok.Builder;
+import lombok.Value;
 
 
-public record RoleFixture(String appName, Role.Name roleName) {
+@Value
+@Builder
+public class RoleFixture {
+	String appName;
+	Role.Name roleName;
 
 	public static Role standardUser() {
-		return new RoleFixture(Application.ANY_APPLICATION, Role.Name.user).role();
+		return RoleFixture.builder()
+			.appName(Application.ANY_APPLICATION)
+			.roleName(Role.Name.user)
+			.build()
+			.role();
 	}
 
 	public static Role moderator(String appName) {
-		return new RoleFixture(appName, Role.Name.moderator).role();
+		return RoleFixture.builder()
+			.appName(appName)
+			.roleName(Role.Name.moderator)
+			.build()
+			.role();
 	}
 
 	public Role role() {
-		return new Role()
-			.setName(roleName)
-			.setApplication(
-				new Application()
-					.setName(appName)
-			);
+		return Role.builder()
+			.name(roleName)
+			.application(
+				Application.builder()
+					.name(appName)
+					.build()
+			)
+			.build();
 	}
 }

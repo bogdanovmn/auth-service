@@ -24,7 +24,8 @@ class JwtController {
 		return jwtService.createTokensByAccountCredentials(
 			request.getEmail(),
 			request.getPassword(),
-			AccountSecurityEventType.LOGIN
+			AccountSecurityEventType.LOGIN,
+			request.getClientUrl()
 		);
 	}
 

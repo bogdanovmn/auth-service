@@ -54,7 +54,7 @@ class UserControllerTest extends AbstractControllerTest {
 	void usersListIsAvailableForAdmin() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 		when(userService.all())
 			.thenReturn(
 				List.of(
@@ -97,7 +97,7 @@ class UserControllerTest extends AbstractControllerTest {
 	void createPasswordResetLinkForAdmin() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account()));
+			.thenReturn(Optional.of(Account.builder().build()));
 		when(userService.createResetLink(userId))
 			.thenReturn(
 				PasswordResetLinkResponse.builder()
@@ -136,7 +136,13 @@ class UserControllerTest extends AbstractControllerTest {
 	void adminChangesUserStatus() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account().setEmail("admin@mail.ru")));
+			.thenReturn(
+				Optional.of(
+					Account.builder()
+						.email("admin@mail.ru")
+						.build()
+				)
+			);
 		when(userService.changeStatus(userId, Account.Status.INACTIVE, "admin@mail.ru"))
 			.thenReturn(
 				UserResponse.builder()
@@ -163,7 +169,13 @@ class UserControllerTest extends AbstractControllerTest {
 	@Test
 	void changeStatusWithoutStatusIsBadRequest() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account().setEmail("admin@mail.ru")));
+			.thenReturn(
+				Optional.of(
+					Account.builder()
+						.email("admin@mail.ru")
+						.build()
+				)
+			);
 
 		this.mockMvc.perform(
 			put("/users/%s/status".formatted(UUID.randomUUID()))
@@ -176,7 +188,13 @@ class UserControllerTest extends AbstractControllerTest {
 	@Test
 	void changeStatusToUnknownValueIsBadRequest() throws Exception {
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account().setEmail("admin@mail.ru")));
+			.thenReturn(
+				Optional.of(
+					Account.builder()
+						.email("admin@mail.ru")
+						.build()
+				)
+			);
 
 		this.mockMvc.perform(
 			put("/users/%s/status".formatted(UUID.randomUUID()))
@@ -192,10 +210,11 @@ class UserControllerTest extends AbstractControllerTest {
 		when(accountRepository.findById(any(UUID.class)))
 			.thenReturn(
 				Optional.of(
-					new Account()
-						.setId(userId)
-						.setEmail("joe@mail.ru")
-						.setStatus(Account.Status.INACTIVE)
+					Account.builder()
+						.id(userId)
+						.email("joe@mail.ru")
+						.status(Account.Status.INACTIVE)
+						.build()
 				)
 			);
 
@@ -209,7 +228,13 @@ class UserControllerTest extends AbstractControllerTest {
 	void refreshTokenCannotBeUsedAsAccessToken() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account().setId(userId)));
+			.thenReturn(
+				Optional.of(
+					Account.builder()
+						.id(userId)
+						.build()
+				)
+			);
 
 		// A refresh token has no 'userName' and no 'roles' claims
 		this.mockMvc.perform(
@@ -224,7 +249,13 @@ class UserControllerTest extends AbstractControllerTest {
 	void tokenWithoutRolesClaimIsRejected() throws Exception {
 		final UUID userId = UUID.randomUUID();
 		when(accountRepository.findById(any(UUID.class)))
-			.thenReturn(Optional.of(new Account().setId(userId)));
+			.thenReturn(
+				Optional.of(
+					Account.builder()
+						.id(userId)
+						.build()
+				)
+			);
 
 		this.mockMvc.perform(
 			get("/users")
@@ -238,8 +269,9 @@ class UserControllerTest extends AbstractControllerTest {
 		when(accountRepository.findById(any(UUID.class)))
 			.thenReturn(
 				Optional.of(
-					new Account()
-						.setPasswordChangedAt(new Date())
+					Account.builder()
+						.passwordChangedAt(new Date())
+						.build()
 				)
 			);
 

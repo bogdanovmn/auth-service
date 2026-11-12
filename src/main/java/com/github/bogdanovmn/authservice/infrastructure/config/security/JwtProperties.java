@@ -8,14 +8,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
-	private String privateKeyPath = "";
-	private String publicKeyPath = "";
-	private long ttlInMinutes = 30;
+	private String privateKeyPath;
+	private String publicKeyPath;
+	private long ttlInMinutes;
 	private final RefreshToken refreshToken = new RefreshToken();
 
 	@Getter
 	@Setter
 	public static class RefreshToken {
-		private long ttlInHours = 720;
+		private long ttlInHours;
 	}
 }

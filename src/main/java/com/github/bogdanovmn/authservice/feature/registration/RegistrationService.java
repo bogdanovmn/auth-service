@@ -28,16 +28,17 @@ class RegistrationService {
 				roleRepository.getBasicAdminRole()
 			);
 		}
-		accountRepository.save(
-			new Account()
-				.setEmail(request.getEmail())
-				.setName(request.getAccountName())
-				.setEncodedPassword(
+		accountRepository.create(
+			Account.builder()
+				.email(request.getEmail())
+				.name(request.getAccountName())
+				.encodedPassword(
 					PasswordEncoderFactories.createDelegatingPasswordEncoder().encode(
 						request.getPassword()
 					)
 				)
-				.setRoles(roles)
+				.roles(roles)
+				.build()
 		);
 	}
 }

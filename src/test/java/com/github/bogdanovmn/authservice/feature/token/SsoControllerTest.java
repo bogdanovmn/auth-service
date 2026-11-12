@@ -1,5 +1,6 @@
 package com.github.bogdanovmn.authservice.feature.token;
 
+import com.github.bogdanovmn.authservice.common.domain.AccountSecurityEventType;
 import com.github.bogdanovmn.authservice.test.AbstractControllerTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -31,7 +32,7 @@ class SsoControllerTest extends AbstractControllerTest {
 		final String password = "secret";
 
 		final UUID refreshTokenId = UUID.randomUUID();
-		when(ssoService.temporaryCode(email, password))
+		when(ssoService.temporaryCode(email, password, "https://app.example/cb?state=1"))
 			.thenReturn(code);
 
 		MvcResult requestResult = this.mockMvc.perform(
@@ -42,6 +43,7 @@ class SsoControllerTest extends AbstractControllerTest {
 						ExchangeCredentialsToJwtRequest.builder()
 							.email(email)
 							.password(password)
+							.clientUrl("https://app.example/cb?state=1")
 						.build()
 					)
 				)
@@ -60,6 +62,28 @@ class SsoControllerTest extends AbstractControllerTest {
 		);
 	}
 
+
+	@Test
+	void exchangeJwtToCodePassesClientUrlAndProvider() {
+		final String email = "joe@mail.ru";
+		final String clientUrl = "https://app.example/cb";
+		final String code = UUID.randomUUID().toString();
+
+		when(ssoService.temporaryCodeByAccount(
+			email,
+			AccountSecurityEventType.SSO,
+			"github",
+			clientUrl
+		)).thenReturn(code);
+
+		TemporaryCodeResponse response = new SsoController(ssoService).exchangeJwtToCode(
+			() -> email,
+			clientUrl,
+			"github"
+		);
+
+		assertEquals(code, response.getCode());
+	}
 
 	@Test
 	void badRequest() throws Exception {

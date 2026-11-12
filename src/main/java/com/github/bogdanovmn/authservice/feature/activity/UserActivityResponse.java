@@ -28,6 +28,8 @@ class UserActivityResponse {
 		String type;
 		String ip;
 		String userAgent;
+		String clientUrl;
+		String provider;
 		Date createdAt;
 	}
 }

@@ -3,7 +3,9 @@ package com.github.bogdanovmn.authservice.feature.token;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.bogdanovmn.authservice.common.domain.TooManyAttemptsException;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Service;
@@ -62,10 +64,10 @@ class LoginAttemptLimiter {
 		}
 		String emailKey = key(email);
 		Attempt attempt = attempts.asMap().compute(emailKey, (key, previous) -> nextAttempt(previous, Instant.now()));
-		if (attempt.lockedUntil() != null) {
+		if (attempt.getLockedUntil() != null) {
 			log.warn(
 				"Login is throttled for email: {} after {} failed attempts",
-				emailKey, attempt.failures()
+				emailKey, attempt.getFailures()
 			);
 		}
 	}
@@ -79,16 +81,19 @@ class LoginAttemptLimiter {
 
 	private Attempt nextAttempt(Attempt previous, Instant now) {
 		long windowInSeconds = properties.getWindowInSeconds();
-		if (previous == null || now.isAfter(previous.windowStartedAt().plusSeconds(windowInSeconds))) {
-			return new Attempt(1, now, null);
+		if (previous == null || now.isAfter(previous.getWindowStartedAt().plusSeconds(windowInSeconds))) {
+			return Attempt.builder()
+				.failures(1)
+				.windowStartedAt(now)
+				.build();
 		}
 		long maxFailures = properties.getMaxFailures();
-		long failures = previous.failures() + 1;
-		return new Attempt(
-			failures,
-			previous.windowStartedAt(),
-			failures < maxFailures ? null : now.plusSeconds(lockInSeconds(failures))
-		);
+		long failures = previous.getFailures() + 1;
+		return Attempt.builder()
+			.failures(failures)
+			.windowStartedAt(previous.getWindowStartedAt())
+			.lockedUntil(failures < maxFailures ? null : now.plusSeconds(lockInSeconds(failures)))
+			.build();
 	}
 
 	private long lockInSeconds(long failures) {
@@ -104,7 +109,13 @@ class LoginAttemptLimiter {
 		return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
 	}
 
-	private record Attempt(long failures, Instant windowStartedAt, Instant lockedUntil) {
+	@Value
+	@Builder
+	private static class Attempt {
+		long failures;
+		Instant windowStartedAt;
+		Instant lockedUntil;
+
 		long retryAfterSeconds(Instant now) {
 			if (lockedUntil == null) {
 				return 0;
